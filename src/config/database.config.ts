@@ -10,7 +10,8 @@ export const databaseConfig: TypeOrmModuleOptions = {
   password: process.env.DB_PASSWORD || '',
   database: process.env.DB_NAME || 'postgres',
   entities: [User, Person],
-  migrations: ['src/migrations/*.ts'],
+  // Use compiled JS migrations at runtime to avoid loading TS files in CJS context
+  migrations: ['dist/database/migrations/*.js'],
   synchronize: process.env.DB_SYNCHRONIZE === 'true', // Use env variable
   logging: process.env.DB_LOGGING === 'true',
   ssl: process.env.DB_SSL === 'true' ? { 

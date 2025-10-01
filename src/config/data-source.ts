@@ -5,6 +5,12 @@ import { Person } from '../modules/profiles/entities/person.entity';
 
 config();
 
+// Prefer compiled JS migrations at runtime. Allow CLI to opt-in to TS via env flag.
+const useTsMigrations = process.env.TYPEORM_USE_TS_MIGRATIONS === 'true';
+const migrationGlobs = useTsMigrations
+  ? ['src/database/migrations/*.ts']
+  : ['dist/database/migrations/*.js'];
+
 export const AppDataSource = new DataSource({
   type: 'postgres',
   host: process.env.DB_HOST,
@@ -13,7 +19,7 @@ export const AppDataSource = new DataSource({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   entities: [User, Person],
-  migrations: ['dist/migrations/*.js'],
+  migrations: migrationGlobs,
   synchronize: false, // Never true in production
   logging: process.env.NODE_ENV !== 'production',
   ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
