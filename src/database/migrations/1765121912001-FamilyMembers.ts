@@ -12,7 +12,7 @@ export class FamilyMembers1765121912001 implements MigrationInterface {
                 name: 'family_members',
                 columns: [
                     {
-                        name: 'family_member_id',
+                        name: 'id',
                         type: 'uuid',
                         isPrimary: true,
                         generationStrategy: 'uuid',
@@ -88,7 +88,7 @@ export class FamilyMembers1765121912001 implements MigrationInterface {
                 name: 'FK_family_members_created_by_users',
                 columnNames: ['created_by'],
                 referencedTableName: 'users',
-                referencedColumnNames: ['user_id'],
+                referencedColumnNames: ['id'],
                 onDelete: 'CASCADE',
                 onUpdate: 'CASCADE',
             }),
@@ -99,7 +99,7 @@ export class FamilyMembers1765121912001 implements MigrationInterface {
                 name: 'FK_family_members_relation_type',
                 columnNames: ['relation_type_id'],
                 referencedTableName: 'relation_types',
-                referencedColumnNames: ['relation_type_id'],
+                referencedColumnNames: ['id'],
                 onDelete: 'RESTRICT',
                 onUpdate: 'CASCADE',
             }),

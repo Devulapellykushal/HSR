@@ -28,7 +28,7 @@ export class FamilyMembersService {
 		// lookup relation_type_id for 'Self'
 		const relRow = await runner
 			.createQueryBuilder()
-			.select(['rt.relation_type_id'])
+			.select(['rt.id as relation_type_id'])
 			.from('relation_types', 'rt')
 			.where('rt.name = :name', { name: 'Self' })
 			.andWhere('rt.is_active = :active', { active: true })

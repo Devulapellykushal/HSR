@@ -10,7 +10,7 @@ export class ShoesSizes1765121912002 implements MigrationInterface {
 				name: 'shoes_sizes',
 				columns: [
 					{
-						name: 'shoe_size_id',
+						name: 'id',
 						type: 'uuid',
 						isPrimary: true,
 						generationStrategy: 'uuid',

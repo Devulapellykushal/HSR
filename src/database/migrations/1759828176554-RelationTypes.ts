@@ -10,7 +10,7 @@ export class RelationTypes1759828176554 implements MigrationInterface {
 				name: 'relation_types',
 				columns: [
 					{
-						name: 'relation_type_id',
+						name: 'id',
 						type: 'uuid',
 						isPrimary: true,
 						generationStrategy: 'uuid',

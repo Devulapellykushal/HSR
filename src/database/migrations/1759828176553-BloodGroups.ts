@@ -10,7 +10,7 @@ export class BloodGroups1759828176553 implements MigrationInterface {
 				name: 'blood_groups',
 				columns: [
 					{
-						name: 'blood_group_id',
+						name: 'id',
 						type: 'uuid',
 						isPrimary: true,
 						generationStrategy: 'uuid',
