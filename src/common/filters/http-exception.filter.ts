@@ -24,6 +24,20 @@ export class AllExceptionsFilter implements ExceptionFilter {
 			? message.join(', ')
 			: message;
 
+		// Log unexpected (500) and non-HttpException errors to console for visibility
+		if (!(exception instanceof HttpException) || status >= 500) {
+			const err: any = exception as any;
+			const errMsg = err?.message ?? messageStr;
+			// concise structured log
+			console.error('[500 ERROR]', {
+				path: request?.url,
+				method: request?.method,
+				status,
+				message: errMsg,
+			});
+			if (err?.stack) console.error(err.stack);
+		}
+
 		response.status(status).json({
 			status_code: status,
 			status: false,

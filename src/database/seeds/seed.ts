@@ -4,6 +4,7 @@ import { seedAdminUser } from './adminuserseed';
 import { seedBloodGroups } from './bloodgroupseed';
 import { seedClothingSizes } from './clothingsizeseed';
 import { seedRelationTypes } from './relationtypeseed';
+import { seedShoeSizes } from './shoesizeseed';
 
 async function run() {
 	await dataSource.initialize();
@@ -15,6 +16,7 @@ async function run() {
 		await runSeeder('bloodgroupseed', seedBloodGroups);
 		await runSeeder('clothingsizeseed', seedClothingSizes);
 		await runSeeder('relationtypeseed', seedRelationTypes);
+		await runSeeder('shoesizeseed', seedShoeSizes);
 		console.log('Seeds completed successfully.');
 	} catch (err) {
 		console.error('Seeding failed:', err);

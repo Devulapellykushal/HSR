@@ -8,6 +8,15 @@ export async function seedClothingSizes(): Promise<void> {
 		{ name: 'L', description: 'Large size', is_active: true, is_predefined: true },
 		{ name: 'XL', description: 'Extra large size', is_active: true, is_predefined: true },
 		{ name: 'XXL', description: 'Double extra large size', is_active: true, is_predefined: true },
+		{ name: '26', description: '26 size', is_active: true, is_predefined: true },
+		{ name: '28', description: '28 size', is_active: true, is_predefined: true },
+		{ name: '30', description: '30 size', is_active: true, is_predefined: true },
+		{ name: '32', description: '32 size', is_active: true, is_predefined: true },
+		{ name: '34', description: '34 size', is_active: true, is_predefined: true },
+		{ name: '36', description: '36 size', is_active: true, is_predefined: true },
+		{ name: '38', description: '38 size', is_active: true, is_predefined: true },
+		{ name: '40', description: '40 size', is_active: true, is_predefined: true },
+		{ name: '42', description: '42 size', is_active: true, is_predefined: true },
 	];
 
 	const params: any[] = [];

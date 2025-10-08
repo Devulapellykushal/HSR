@@ -1,7 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { DataSource } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
 import { JwtLoginResponse, MeResponse } from './responses/auth.responses';
@@ -12,7 +11,6 @@ import { UsersService } from '../users/users.service';
 @Injectable()
 export class AuthService {
 	constructor(
-		private readonly dataSource: DataSource,
 		private readonly jwtService: JwtService,
 		private readonly config: ConfigService,
 		private readonly usersService: UsersService,
@@ -60,32 +58,17 @@ export class AuthService {
 		// Hash password
 		const password_hash = await bcrypt.hash(body.password, 10);
 
-		// Attempt insert
+		// Attempt insert via UsersService
 		try {
-			await this.dataSource
-				.createQueryBuilder()
-				.insert()
-				.into('users', [
-					'email',
-					'mobile',
-					'password_hash',
-					'first_name',
-					'last_name',
-					'role',
-					'is_active',
-				])
-				.values([
-					{
-						email: body.email ?? null,
-						mobile: body.mobile!,
-						password_hash,
-						first_name: body.first_name ?? null,
-						last_name: body.last_name ?? null,
-						role: 'normal',
-						is_active: true,
-					},
-				])
-				.execute();
+			await this.usersService.create_user({
+				email: body.email ?? null,
+				mobile: body.mobile!,
+				password_hash,
+				first_name: body.first_name ?? null,
+				last_name: body.last_name ?? null,
+				role: 'normal',
+				is_active: true,
+			});
 		} catch (err: any) {
 			// Unique violation
 			if (err?.code === '23505') {
