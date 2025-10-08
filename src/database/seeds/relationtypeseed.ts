@@ -2,6 +2,7 @@ import dataSource from '../../config/typeorm.config';
 
 export async function seedRelationTypes(): Promise<void> {
 	const items = [
+		{ name: 'Self', description: 'Self relation', is_active: true, is_predefined: true },
 		{ name: 'Father', description: 'Father relation', is_active: true, is_predefined: true },
 		{ name: 'Mother', description: 'Mother relation', is_active: true, is_predefined: true },
 		{ name: 'Brother', description: 'Brother relation', is_active: true, is_predefined: true },
