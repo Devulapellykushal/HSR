@@ -49,8 +49,7 @@ export class DocumentTypesController {
 	}
 
 	    @Get('all')
-    @UseGuards(AuthGuard('jwt'), RolesGuard)
-    @Roles('admin')
+    @UseGuards(AuthGuard('jwt'))
     @ApiOperation({ summary: 'All document types' })
 	@ApiOkArrayStd('All document types', DocumentTypeResponse)
 	@ApiResponse({ status: 400, ...StdError.BadRequest })
