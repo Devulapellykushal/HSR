@@ -2,7 +2,7 @@ import { Column, CreateDateColumn, DeleteDateColumn, Entity, PrimaryGeneratedCol
 
 @Entity({ name: 'shoes_sizes' })
 export class ShoesizeType {
-	@PrimaryGeneratedColumn('uuid', { name: 'shoe_size_id' })
+	@PrimaryGeneratedColumn('uuid', { name: 'id' })
 	id!: string;
 
 	@Column({ type: 'varchar', length: 100 })
