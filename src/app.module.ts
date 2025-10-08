@@ -6,6 +6,7 @@ import { AppService } from './app.service';
 import { DocumentTypesModule } from 'src/modules/document-types/document-types.module';
 import { BloodGroupTypesModule } from 'src/modules/bloodgroup-types/bloodgroup-types.module';
 import { ClothingSizeTypesModule } from 'src/modules/clothingsize-types/clothingsize-types.module';
+import { ShoesizeTypesModule } from 'src/modules/shoesize-types/shoesize-types.module';
 import { RelationTypesModule } from 'src/modules/relation-types/relation-types.module';
 import { AuthModule } from 'src/modules/auth/auth.module';
 
@@ -32,6 +33,7 @@ import { AuthModule } from 'src/modules/auth/auth.module';
     DocumentTypesModule,
     BloodGroupTypesModule,
     ClothingSizeTypesModule,
+    ShoesizeTypesModule,
     RelationTypesModule,
   ],
   controllers: [AppController],

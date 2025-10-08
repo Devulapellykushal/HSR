@@ -1,5 +1,4 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
-import { Table, TableForeignKey, TableIndex } from "typeorm";
+import { MigrationInterface, QueryRunner, Table, TableForeignKey, TableIndex } from "typeorm";
 
 export class FamilyMembers1765121912001 implements MigrationInterface {
 
