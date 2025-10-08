@@ -25,7 +25,7 @@ export class UsersService {
 		const qb = this.dataSource
 			.createQueryBuilder()
 			.select([
-				'u.user_id',
+				'u.id as user_id',
 				'u.email',
 				'u.mobile',
 				'u.password_hash',
@@ -48,7 +48,7 @@ export class UsersService {
 		const qb = this.dataSource
 			.createQueryBuilder()
 			.select([
-				'u.user_id',
+				'u.id as user_id',
 				'u.email',
 				'u.mobile',
 				'u.role',
@@ -57,7 +57,7 @@ export class UsersService {
 				'u.last_name',
 			])
 			.from('users', 'u')
-			.where('u.user_id = :user_id', { user_id })
+			.where('u.id = :user_id', { user_id })
 			.andWhere('u.deleted_at IS NULL')
 			.limit(1);
 
@@ -117,7 +117,7 @@ export class UsersService {
 			// Fetch the created user_id by unique mobile within the same transaction
 			const created = await queryRunner.manager
 				.createQueryBuilder()
-				.select(['u.user_id'])
+				.select(['u.id as user_id'])
 				.from('users', 'u')
 				.where('u.mobile = :mobile', { mobile })
 				.andWhere('u.deleted_at IS NULL')

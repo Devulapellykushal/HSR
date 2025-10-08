@@ -10,7 +10,7 @@ export class DocumentTypes1759828176552 implements MigrationInterface {
 				name: 'document_types',
 				columns: [
 					{
-						name: 'document_type_id',
+						name: 'id',
 						type: 'uuid',
 						isPrimary: true,
 						generationStrategy: 'uuid',
