@@ -117,3 +117,10 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+
+## JWT Secret: 
+OpenSSL (base64, good entropy):
+  openssl rand -base64 64
+
+Node.js (base64, good entropy):
+  node -e "console.log(require('crypto').randomBytes(96).toString('base64'))"
