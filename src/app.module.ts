@@ -1,27 +1,32 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { ThrottlerModule } from '@nestjs/throttler';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { DatabaseModule } from './database/database.module';
-import { AuthModule, HealthModule, ProfilesModule } from './modules/all-modules';
+import { DocumentTypesModule } from 'src/modules/document-types/document-types.module';
+import { AuthModule } from 'src/modules/auth/auth.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-      envFilePath: '.env',
+    // load .env and make config available app-wide
+    ConfigModule.forRoot({ isGlobal: true }),
+    // database connection using TypeORM + PostgreSQL
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: () => ({
+        type: 'postgres',
+        host: process.env.DB_HOST,
+        port: Number(process.env.DB_PORT) || 5432,
+        username: process.env.DB_USERNAME,
+        password: process.env.DB_PASSWORD,
+        database: process.env.DB_NAME,
+        autoLoadEntities: true,
+        // OK for local/dev; disable in production
+        synchronize: process.env.NODE_ENV !== 'production',
+      }),
     }),
-    ThrottlerModule.forRoot([
-      {
-        ttl: 60000, // 1 minute
-        limit: 100, // 100 requests per minute
-      },
-    ]),
-    DatabaseModule,
     AuthModule,
-    ProfilesModule,
-    HealthModule,
+    DocumentTypesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,56 +1,39 @@
-import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { SwaggerModule } from '@nestjs/swagger';
-import helmet from 'helmet';
-import morgan from 'morgan';
+import { ValidationPipe } from '@nestjs/common';
+import { ResponseInterceptor } from './common/interceptors/response.interceptor';
+import { AllExceptionsFilter } from './common/filters/http-exception.filter';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
-import { DatabaseExceptionFilter } from './common/filters/database-exception.filter';
-import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
-import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
-import { ResponseTransformInterceptor } from './common/interceptors/response-transform.interceptor';
-import { swaggerConfig, swaggerCustomOptions } from './config/swagger.config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  const logger = new Logger('Bootstrap');
-
-  // Global exception filters
-  app.useGlobalFilters(new GlobalExceptionFilter(), new DatabaseExceptionFilter());
-  
-  // Global interceptors
-  app.useGlobalInterceptors(new LoggingInterceptor(), new ResponseTransformInterceptor());
-
-  // Security middleware
-  app.use(helmet());
-  app.use(morgan('combined'));
-
-  // CORS configuration
-  app.enableCors({
-    origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
-  });
-
-  // Global validation pipe
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
+      transformOptions: { enableImplicitConversion: true },
     }),
   );
+  // standardized success and error responses
+  app.useGlobalInterceptors(new ResponseInterceptor());
+  app.useGlobalFilters(new AllExceptionsFilter());
+  // Swagger configuration using environment variables
+  const config = new DocumentBuilder()
+    .setTitle(process.env.SWAGGER_TITLE ?? 'API')
+    .setDescription(
+      process.env.SWAGGER_DESCRIPTION ?? 'API documentation',
+    )
+    .setVersion(process.env.SWAGGER_VERSION ?? '1.0')
+    .addBearerAuth(
+      { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
+      'JWT',
+    )
+    .build();
 
-  // Swagger documentation
-  const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('api/docs', app, document, swaggerCustomOptions);
-
-  const port = process.env.PORT || 3000;
-  await app.listen(port);
-  
-  logger.log(`🚀 Application is running on: http://localhost:${port}`);
-  logger.log(`📚 API Documentation: http://localhost:${port}/api/docs`);
-  logger.log(`🏥 Health Check: http://localhost:${port}/health`);
+  const document = SwaggerModule.createDocument(app, config);
+  const swaggerPath = process.env.SWAGGER_PATH ?? 'api';
+  SwaggerModule.setup(swaggerPath, app, document);
+  await app.listen(process.env.PORT ?? 3000);
 }
-
 bootstrap();

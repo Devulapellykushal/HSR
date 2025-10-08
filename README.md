@@ -1,316 +1,119 @@
-# Kutum Family Companion Backend
+<p align="center">
+  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
+</p>
 
-A comprehensive NestJS backend for a mobile-first family companion app with features for managing family profiles, documents, health records, milestones, vehicles, and reminders.
+[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
+[circleci-url]: https://circleci.com/gh/nestjs/nest
 
-## 🚀 Features
+  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
+    <p align="center">
+<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
+<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
+<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
+<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
+<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
+<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
+<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
+  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
+    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
+  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
+</p>
+  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
+  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
-- **Authentication & Authorization**: JWT-based auth with role-based access control (Parent/Child/Elder)
-- **Family Management**: Create and manage family member profiles
-- **Document Vault**: Secure document storage with encryption and sharing
-- **Health Tracking**: Record and track health vitals with trend analysis
-- **Milestones**: Manage family events, birthdays, and recurring milestones
-- **Vehicle Management**: Track vehicles, insurance, and service due dates
-- **Reminders & Notifications**: Smart reminders with push/email notifications
-- **File Upload**: Support for local, AWS S3, and Google Cloud Storage
-- **Security**: Helmet, CORS, rate limiting, and input validation
+## Description
 
-## 🏗 Architecture
+[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
-```
-src/
-├── interfaces/          # TypeScript interfaces and DTOs
-├── modules/            # Feature modules
-│   ├── auth/           # Authentication & authorization
-│   ├── profiles/       # Family member management
-│   ├── documents/      # Document vault
-│   ├── health/         # Health records & vitals
-│   ├── milestones/     # Family milestones & events
-│   ├── vehicles/       # Vehicle management
-│   ├── reminders/      # Reminders & alerts
-│   ├── notifications/  # Push/email notifications
-│   └── file-upload/    # File upload service
-├── utils/              # Utility functions
-└── main.ts            # Application entry point
-```
-
-## 📋 Prerequisites
-
-- Node.js 18+ 
-- npm or yarn
-- AWS S3 account (optional)
-- Google Cloud Storage account (optional)
-- Firebase project (optional)
-- SMTP email service (optional)
-
-## 🛠 Installation
-
-1. **Clone and install dependencies:**
-```bash
-cd kutumbackend
-npm install
-```
-
-2. **Environment setup:**
-```bash
-cp env.example .env
-# Edit .env with your configuration
-```
-
-3. **Start development server:**
-```bash
-npm run start:dev
-```
-
-4. **Build for production:**
-```bash
-npm run build
-npm run start:prod
-```
-
-## 🔧 Configuration
-
-### Required Environment Variables
-
-```env
-# Application
-NODE_ENV=development
-PORT=3000
-JWT_SECRET=your-super-secret-jwt-key
-
-# File Upload
-UPLOAD_PATH=./uploads
-ENCRYPTION_KEY=your-encryption-key
-```
-
-### Optional Environment Variables
-
-```env
-# AWS S3
-AWS_ACCESS_KEY_ID=your-aws-access-key
-AWS_SECRET_ACCESS_KEY=your-aws-secret-key
-AWS_REGION=us-east-1
-AWS_S3_BUCKET=your-s3-bucket
-
-# Google Cloud Storage
-GCS_PROJECT_ID=your-gcs-project-id
-GCS_BUCKET=your-gcs-bucket
-GCS_KEY_FILE=path/to/service-account-key.json
-
-# Email
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your-email@gmail.com
-SMTP_PASS=your-app-password
-
-# Firebase
-FIREBASE_PROJECT_ID=your-firebase-project-id
-FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----..."
-FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@your-project.iam.gserviceaccount.com
-```
-
-## 📚 API Documentation
-
-Once the server is running, visit:
-- **Swagger UI**: http://localhost:3000/api/docs
-- **Health Check**: http://localhost:3000/health
-
-## 🔐 Authentication
-
-The API uses JWT-based authentication. Include the token in the Authorization header:
-
-```
-Authorization: Bearer <your-jwt-token>
-```
-
-### User Roles
-
-- **PARENT**: Full access to all features
-- **ELDER**: Access to most features (limited deletion rights)
-- **CHILD**: Read-only access to family data
-
-## 📡 API Endpoints
-
-### Authentication
-- `POST /auth/login` - User login
-- `POST /auth/register` - User registration
-- `GET /auth/profile` - Get current user profile
-
-### Family Profiles
-- `POST /profiles` - Add family member
-- `GET /profiles` - Get all family members
-- `GET /profiles/:id` - Get family member by ID
-- `PATCH /profiles/:id` - Update family member
-- `DELETE /profiles/:id` - Delete family member
-
-### Document Vault
-- `POST /documents` - Upload document
-- `GET /documents` - Get all documents
-- `GET /documents/expiring` - Get expiring documents
-- `GET /documents/:id` - Get document by ID
-- `GET /documents/:id/download` - Get document download URL
-- `PATCH /documents/:id` - Update document
-- `POST /documents/:id/share` - Share document
-- `DELETE /documents/:id` - Delete document
-
-### Health Records
-- `POST /health` - Add health record
-- `GET /health/person/:personId` - Get health records for person
-- `GET /health/person/:personId/latest` - Get latest vitals
-- `GET /health/person/:personId/trends` - Get health trends
-- `GET /health/:id` - Get health record by ID
-- `PATCH /health/:id` - Update health record
-- `DELETE /health/:id` - Delete health record
-
-### Milestones
-- `POST /milestones` - Create milestone
-- `GET /milestones` - Get all family milestones
-- `GET /milestones/person/:personId` - Get milestones for person
-- `GET /milestones/upcoming` - Get upcoming milestones
-- `GET /milestones/recurring` - Get recurring milestones
-- `POST /milestones/generate-recurring` - Generate recurring milestones
-- `GET /milestones/:id` - Get milestone by ID
-- `PATCH /milestones/:id` - Update milestone
-- `DELETE /milestones/:id` - Delete milestone
-
-### Vehicles
-- `POST /vehicles` - Add vehicle
-- `GET /vehicles` - Get all family vehicles
-- `GET /vehicles/owner/:ownerId` - Get vehicles by owner
-- `GET /vehicles/expiring` - Get vehicles with expiring documents
-- `GET /vehicles/service-due` - Get vehicles due for service
-- `GET /vehicles/:id` - Get vehicle by ID
-- `PATCH /vehicles/:id` - Update vehicle
-- `DELETE /vehicles/:id` - Delete vehicle
-
-### Reminders
-- `POST /reminders` - Create reminder
-- `GET /reminders` - Get all family reminders
-- `GET /reminders/person/:personId` - Get reminders for person
-- `GET /reminders/pending` - Get pending reminders
-- `GET /reminders/:id` - Get reminder by ID
-- `PATCH /reminders/:id` - Update reminder
-- `PATCH /reminders/:id/snooze` - Snooze reminder
-- `PATCH /reminders/:id/complete` - Mark reminder as completed
-- `DELETE /reminders/:id` - Delete reminder
-
-### Notifications
-- `POST /notifications` - Create notification
-- `POST /notifications/push` - Send push notification
-- `POST /notifications/email` - Send email notification
-- `POST /notifications/family` - Send family notification
-- `GET /notifications` - Get user notifications
-- `GET /notifications/unread-count` - Get unread count
-- `PATCH /notifications/:id/read` - Mark notification as read
-- `PATCH /notifications/read-all` - Mark all as read
-
-## 🔒 Security Features
-
-- **JWT Authentication**: Secure token-based authentication
-- **Role-based Access Control**: Granular permissions by user role
-- **Input Validation**: Comprehensive validation using class-validator
-- **Rate Limiting**: Protection against abuse with throttling
-- **CORS Protection**: Configurable cross-origin resource sharing
-- **Helmet Security**: Security headers and protection
-- **File Encryption**: Optional file encryption for sensitive documents
-- **Data Sanitization**: Input sanitization and validation
-
-## 🚀 Deployment
-
-### Docker (Recommended)
-
-```dockerfile
-FROM node:18-alpine
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci --only=production
-COPY dist ./dist
-EXPOSE 3000
-CMD ["node", "dist/main"]
-```
-
-### Environment-specific Configuration
-
-1. **Development**: Uses in-memory storage
-2. **Production**: Configure database and external services
-3. **Testing**: Mock services for unit tests
-
-## 🧪 Testing
+## Project setup
 
 ```bash
-# Unit tests
-npm run test
-
-# E2E tests
-npm run test:e2e
-
-# Test coverage
-npm run test:cov
+$ bun install
 ```
 
-## 📝 Data Models
+## Compile and run the project
 
-### Person
-- Basic profile information
-- Family relationships
-- Contact details
-- Role-based permissions
+```bash
+# development
+$ bun run start
 
-### Document
-- File metadata
-- Encryption status
-- Sharing permissions
-- Expiry tracking
+# watch mode
+$ bun run start:dev
 
-### HealthRecord
-- Various health metrics
-- Trend analysis
-- Historical data
-- Unit conversions
+# production mode
+$ bun run start:prod
+```
 
-### Milestone
-- Event tracking
-- Recurring patterns
-- Media attachments
-- Category classification
+## Database: Migrations & Seeds
 
-### Vehicle
-- Vehicle details
-- Document tracking
-- Service scheduling
-- Insurance management
+Use the provided scripts in `package.json`.
 
-### Reminder
-- Smart scheduling
-- Priority levels
-- Notification triggers
-- Snooze functionality
+```bash
+# create an empty migration (edit up/down)
+$ bun run migration:create
 
-## 🤝 Contributing
+# generate a migration from current entities
+$ bun run migration:generate
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests
-5. Submit a pull request
+# run migrations
+$ bun run migration:run
 
-## 📄 License
+# revert last migration
+$ bun run migration:revert
 
-This project is licensed under the MIT License.
+# run seed script (edit src/database/seeds/seed.ts)
+$ bun run seed
+```
 
-## 🆘 Support
+## Run tests
 
-For support and questions:
-- Create an issue in the repository
-- Check the API documentation at `/api/docs`
-- Review the code examples in the controllers
+```bash
+# unit tests
+$ bun run test
 
-## 🔄 Roadmap
+# e2e tests
+$ bun run test:e2e
 
-- [ ] Database integration (PostgreSQL/MongoDB)
-- [ ] Real-time notifications with WebSockets
-- [ ] Advanced analytics and reporting
-- [ ] Mobile app integration
-- [ ] Third-party service integrations
-- [ ] Advanced security features
-- [ ] Performance optimizations
-- [ ] Comprehensive testing suite
+# test coverage
+$ bun run test:cov
+```
+
+## Deployment
+
+When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+
+If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+
+```bash
+$ bun install -g @nestjs/mau
+$ mau deploy
+```
+
+With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+
+## Resources
+
+Check out a few resources that may come in handy when working with NestJS:
+
+- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
+- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
+- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
+- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
+- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
+- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
+- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
+- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+
+## Support
+
+Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+
+## Stay in touch
+
+- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
+- Website - [https://nestjs.com](https://nestjs.com/)
+- Twitter - [@nestframework](https://twitter.com/nestframework)
+
+## License
+
+Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
