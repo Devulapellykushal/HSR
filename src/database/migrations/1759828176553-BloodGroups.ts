@@ -19,7 +19,7 @@ export class BloodGroups1759828176553 implements MigrationInterface {
 					{
 						name: 'name',
 						type: 'varchar',
-						length: '100',
+						length: '255',
 						isNullable: false,
 					},
 					{

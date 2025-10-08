@@ -4,6 +4,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DocumentTypesModule } from 'src/modules/document-types/document-types.module';
+import { BloodGroupTypesModule } from 'src/modules/bloodgroup-types/bloodgroup-types.module';
+import { ClothingSizeTypesModule } from 'src/modules/clothingsize-types/clothingsize-types.module';
+import { RelationTypesModule } from 'src/modules/relation-types/relation-types.module';
 import { AuthModule } from 'src/modules/auth/auth.module';
 
 @Module({
@@ -27,6 +30,9 @@ import { AuthModule } from 'src/modules/auth/auth.module';
     }),
     AuthModule,
     DocumentTypesModule,
+    BloodGroupTypesModule,
+    ClothingSizeTypesModule,
+    RelationTypesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

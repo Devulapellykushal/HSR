@@ -19,7 +19,7 @@ export class ClothingSizes1759828176555 implements MigrationInterface {
 					{
 						name: 'name',
 						type: 'varchar',
-						length: '100',
+						length: '255',
 						isNullable: false,
 					},
 					{
