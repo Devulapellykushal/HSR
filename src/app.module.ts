@@ -9,6 +9,7 @@ import { ClothingSizeTypesModule } from 'src/modules/clothingsize-types/clothing
 import { ShoesizeTypesModule } from 'src/modules/shoesize-types/shoesize-types.module';
 import { RelationTypesModule } from 'src/modules/relation-types/relation-types.module';
 import { AuthModule } from 'src/modules/auth/auth.module';
+import { getCommonDbConfig } from 'src/config/database.config';
 
 @Module({
   imports: [
@@ -18,15 +19,8 @@ import { AuthModule } from 'src/modules/auth/auth.module';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: () => ({
-        type: 'postgres',
-        host: process.env.DB_HOST,
-        port: Number(process.env.DB_PORT) || 5432,
-        username: process.env.DB_USERNAME,
-        password: process.env.DB_PASSWORD,
-        database: process.env.DB_NAME,
+        ...getCommonDbConfig(),
         autoLoadEntities: true,
-        // OK for local/dev; disable in production
-        synchronize: process.env.NODE_ENV !== 'production',
       }),
     }),
     AuthModule,
@@ -40,3 +34,4 @@ import { AuthModule } from 'src/modules/auth/auth.module';
   providers: [AppService],
 })
 export class AppModule {}
+
