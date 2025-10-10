@@ -1,8 +1,8 @@
 import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { FamilyMember } from './family-member.entity';
-import { BloodGroupType } from 'src/modules/bloodgroup-types/bloodgroup-type.entity';
-import { ClothingSizeType } from 'src/modules/clothingsize-types/clothingsize-type.entity';
-import { ShoesizeType } from 'src/modules/shoesize-types/shoesize-type.entity';
+import { BloodGroupType } from '../bloodgroup-types/bloodgroup-type.entity';
+import { ClothingSizeType } from '../clothingsize-types/clothingsize-type.entity';
+import { ShoesizeType } from '../shoesize-types/shoesize-type.entity';
 
 export enum FamilyMemberGender {
 	Male = 'Male',

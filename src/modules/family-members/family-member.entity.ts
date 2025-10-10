@@ -1,5 +1,5 @@
 import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
-import { RelationType } from 'src/modules/relation-types/relation-type.entity';
+import { RelationType } from '../relation-types/relation-type.entity';
 
 @Entity({ name: 'family_members' })
 export class FamilyMember {
