@@ -1,10 +1,10 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ShoesizeType } from './shoesize-type.entity';
 import { CreateShoesizeTypeDto } from './dto/create-shoesize-type.dto';
-import { UpdateShoesizeTypeDto } from './dto/update-shoesize-type.dto';
 import { QueryShoesizeTypeDto } from './dto/query-shoesize-type.dto';
+import { UpdateShoesizeTypeDto } from './dto/update-shoesize-type.dto';
+import { ShoesizeType } from './shoesize-type.entity';
 
 @Injectable()
 export class ShoesizeTypesService {
@@ -18,13 +18,20 @@ export class ShoesizeTypesService {
 		if (!name) {
 			throw new ConflictException('Name is required');
 		}
+		if (!dto.uk_size || !dto.us_size || !dto.eu_size) {
+			throw new ConflictException('UK size, US size, and EU size are required');
+		}
+		if (!dto.shoe_category) {
+			throw new ConflictException('Shoe category is required');
+		}
 		const exists = await this.repo
 			.createQueryBuilder('st')
 			.where('LOWER(st.name) = LOWER(:name)', { name })
+			.andWhere('st.shoe_category = :shoe_category', { shoe_category: dto.shoe_category })
 			.andWhere('st.deleted_at IS NULL')
 			.getExists();
 		if (exists) {
-			throw new ConflictException('Shoesize type name already exists');
+			throw new ConflictException('Shoe size type with this name and category already exists');
 		}
 		const entity = this.repo.create({ ...dto, name });
 		return this.repo.save(entity);
@@ -45,12 +52,17 @@ export class ShoesizeTypesService {
 		const allowedSort: Array<keyof ShoesizeType> = [
 			'name',
 			'created_at',
+			'shoe_category',
+			'uk_size',
+			'us_size',
+			'eu_size',
 		];
 		const orderField: keyof ShoesizeType = allowedSort.includes(sortBy)
 			? sortBy
 			: 'created_at';
 
 		const qb = this.repo.createQueryBuilder('st').where('st.deleted_at IS NULL');
+		
 		// optional text search on name/description
 		const search = (query?.search || '').trim();
 		if (search) {
@@ -58,6 +70,11 @@ export class ShoesizeTypesService {
 				'(LOWER(st.name) LIKE LOWER(:q) OR LOWER(st.description) LIKE LOWER(:q))',
 				{ q: `%${search}%` },
 			);
+		}
+		
+		// optional shoe_category filter
+		if (query?.shoe_category) {
+			qb.andWhere('st.shoe_category = :shoe_category', { shoe_category: query.shoe_category });
 		}
 		qb.orderBy(`st.${orderField as string}`, sortOrder as 'ASC' | 'DESC');
 		qb.skip((page - 1) * limit).take(limit);
@@ -87,20 +104,23 @@ export class ShoesizeTypesService {
 	}
 	async update(id: string, dto: UpdateShoesizeTypeDto): Promise<ShoesizeType> {
 		const found = await this.findOne(id);
-		if (dto.name) {
-			const name = dto.name.trim();
+		if (dto.name || dto.shoe_category) {
+			const name = dto.name?.trim() || found.name;
+			const shoe_category = dto.shoe_category || found.shoe_category;
 			const exists = await this.repo
 				.createQueryBuilder('st')
 				.where('LOWER(st.name) = LOWER(:name)', { name })
+				.andWhere('st.shoe_category = :shoe_category', { shoe_category })
 				.andWhere('st.id <> :id', { id })
 				.andWhere('st.deleted_at IS NULL')
 				.getExists();
 			if (exists) {
-				throw new ConflictException('Shoesize type name already exists');
+				throw new ConflictException('Shoe size type with this name and category already exists');
 			}
-			found.name = name;
+			if (dto.name) found.name = name;
+			if (dto.shoe_category) found.shoe_category = shoe_category;
 		}
-		Object.assign(found, { ...dto, name: found.name });
+		Object.assign(found, { ...dto, name: found.name, shoe_category: found.shoe_category });
 		return this.repo.save(found);
 	}
 

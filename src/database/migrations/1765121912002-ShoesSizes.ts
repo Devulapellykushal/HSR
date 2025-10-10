@@ -40,6 +40,34 @@ export class ShoesSizes1765121912002 implements MigrationInterface {
 						default: 'false',
 					},
 					{
+						name: 'uk_size',
+						type: 'varchar',
+						length: '50',
+						isNullable: true,
+					},
+					{
+						name: 'us_size',
+						type: 'varchar',
+						length: '50',
+						isNullable: true,
+					},
+					{
+						name: 'eu_size',
+						type: 'varchar',
+						length: '50',
+						isNullable: true,
+					},
+					{
+						name: 'shoe_category',
+						type: 'enum',
+						enum: [
+							'shoe_men',
+							'shoe_women',
+							'shoe_children'
+						],
+						isNullable: true,
+					},
+					{
 						name: 'created_at',
 						type: 'timestamp with time zone',
 						isNullable: false,
