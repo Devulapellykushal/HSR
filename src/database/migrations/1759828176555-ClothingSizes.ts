@@ -52,6 +52,23 @@ export class ClothingSizes1759828176555 implements MigrationInterface {
 						default: 'now()',
 					},
 					{
+						name: 'cloth_category',
+						type: 'enum',
+						enum: [
+							'pant_men',
+							'shirt_men',
+							'pant_women',
+							'shirt_women',
+							'dress_women',
+							'pant_boy',
+							'shirt_boy',
+							'pant_girl',
+							'shirt_girl',
+							'frock_girl'
+						],
+						isNullable: false,
+					},
+					{
 						name: 'deleted_at',
 						type: 'timestamp with time zone',
 						isNullable: true,

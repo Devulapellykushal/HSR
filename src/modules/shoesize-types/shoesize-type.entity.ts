@@ -17,6 +17,27 @@ export class ShoesizeType {
 	@Column({ type: 'boolean', name: 'is_predefined', default: false })
 	is_predefined!: boolean;
 
+	@Column({ type: 'varchar', length: 50, name: 'uk_size', nullable: true })
+	uk_size?: string | null;
+
+	@Column({ type: 'varchar', length: 50, name: 'us_size', nullable: true })
+	us_size?: string | null;
+
+	@Column({ type: 'varchar', length: 50, name: 'eu_size', nullable: true })
+	eu_size?: string | null;
+
+	@Column({ 
+		type: 'enum', 
+		name: 'shoe_category',
+		enum: [
+			'shoe_men',
+			'shoe_women',
+			'shoe_children'
+		],
+		nullable: true
+	})
+	shoe_category?: 'shoe_men' | 'shoe_women' | 'shoe_children' | null;
+
 	@CreateDateColumn({ type: 'timestamptz', name: 'created_at' })
 	created_at!: Date;
 

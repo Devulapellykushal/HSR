@@ -1,20 +1,19 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiExtraModels, ApiTags } from '@nestjs/swagger';
-import { ApiOkArrayStd, ApiOkStd, ApiCreatedStd, ApiOkEmptyStd } from '../../common/swagger/standard-responses';
-import { ClothingSizeTypesService } from './clothingsize-types.service';
-import { CreateClothingSizeTypeDto } from './dto/create-clothingsize-type.dto';
-import { UpdateClothingSizeTypeDto } from './dto/update-clothingsize-type.dto';
-import { ClothingSizeTypeResponse } from './responses/clothingsize-type.response';
-import { QueryClothingSizeTypeDto } from './dto/query-clothingsize-type.dto';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { StdError } from '../../common/swagger/standard-responses';
 import { AuthGuard } from '@nestjs/passport';
+import { ApiBearerAuth, ApiExtraModels, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiCreatedStd, ApiOkArrayStd, ApiOkEmptyStd, ApiOkStd, StdError } from '../../common/swagger/standard-responses';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
+import { ClothingSizeTypesService } from './clothingsize-types.service';
+import { CreateClothingSizeTypeDto } from './dto/create-clothingsize-type.dto';
+import { QueryClothingSizeTypeDto } from './dto/query-clothingsize-type.dto';
+import { UpdateClothingSizeTypeDto } from './dto/update-clothingsize-type.dto';
+import { ClothingSizeTypeListResponse } from './responses/clothingsize-type-list.response';
+import { ClothingSizeTypeResponse } from './responses/clothingsize-type.response';
 
 
 @ApiTags('clothingsize-types')
-@ApiExtraModels(ClothingSizeTypeResponse)
+@ApiExtraModels(ClothingSizeTypeResponse, ClothingSizeTypeListResponse)
 @ApiBearerAuth('JWT')
 @Controller('clothingsize-types')
 export class ClothingSizeTypesController {
@@ -39,13 +38,16 @@ export class ClothingSizeTypesController {
     @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Roles('admin')
     @ApiOperation({ summary: 'List of clothing size types' })
-	@ApiOkArrayStd('List of clothing size types', ClothingSizeTypeResponse)
+	@ApiOkStd('List of clothing size types', ClothingSizeTypeListResponse)
 	@ApiResponse({ status: 400, ...StdError.BadRequest })
 	@ApiResponse({ status: 401, ...StdError.Unauthorized })
 	@ApiResponse({ status: 403, ...StdError.Forbidden })
-	async listAll(@Query() query: QueryClothingSizeTypeDto): Promise<ClothingSizeTypeResponse[]> {
-		const list = await this.service.ListAll(query);
-		return list as unknown as ClothingSizeTypeResponse[];
+	async listAll(@Query() query: QueryClothingSizeTypeDto): Promise<ClothingSizeTypeListResponse> {
+		const result = await this.service.ListAll(query);
+		return {
+			items: result.items as unknown as ClothingSizeTypeResponse[],
+			meta: result.meta
+		};
 	}
 
 	    @Get('all')

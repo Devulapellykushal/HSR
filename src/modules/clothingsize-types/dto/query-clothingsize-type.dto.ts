@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Type, Transform } from 'class-transformer';
-import { IsIn, IsInt, IsOptional, IsPositive, IsString, Max, Min } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
+import { IsEnum, IsIn, IsInt, IsOptional, IsPositive, IsString, Max, Min } from 'class-validator';
 
 export class QueryClothingSizeTypeDto {
 	@ApiPropertyOptional({ example: 1, minimum: 1, default: 1 })
@@ -24,11 +24,20 @@ export class QueryClothingSizeTypeDto {
 	@Transform(({ value }) => String(value).trim())
 	search?: string;
 
-	@ApiPropertyOptional({ example: 'created_at', enum: ['name', 'created_at'] })
+	@ApiPropertyOptional({ 
+		example: 'shirt_men',
+		enum: ['pant_men', 'shirt_men', 'pant_women', 'shirt_women', 'dress_women', 'pant_boy', 'shirt_boy', 'pant_girl', 'shirt_girl', 'frock_girl'],
+		description: 'Filter by clothing category'
+	})
+	@IsOptional()
+	@IsEnum(['pant_men', 'shirt_men', 'pant_women', 'shirt_women', 'dress_women', 'pant_boy', 'shirt_boy', 'pant_girl', 'shirt_girl', 'frock_girl'])
+	cloth_category?: 'pant_men' | 'shirt_men' | 'pant_women' | 'shirt_women' | 'dress_women' | 'pant_boy' | 'shirt_boy' | 'pant_girl' | 'shirt_girl' | 'frock_girl';
+
+	@ApiPropertyOptional({ example: 'created_at', enum: ['name', 'created_at', 'cloth_category'] })
 	@IsOptional()
 	@IsString()
 	@Transform(({ value }) => String(value).toLowerCase())
-	@IsIn(['name', 'created_at'])
+	@IsIn(['name', 'created_at', 'cloth_category'])
 	sort_by?: string = 'created_at';
 
 	@ApiPropertyOptional({ example: 'DESC', enum: ['ASC', 'DESC'], default: 'DESC' })

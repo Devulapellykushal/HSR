@@ -1,20 +1,19 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiExtraModels, ApiTags } from '@nestjs/swagger';
-import { ApiOkArrayStd, ApiOkStd, ApiCreatedStd, ApiOkEmptyStd } from '../../common/swagger/standard-responses';
-import { ShoesizeTypesService } from './shoesize-types.service';
-import { CreateShoesizeTypeDto } from './dto/create-shoesize-type.dto';
-import { UpdateShoesizeTypeDto } from './dto/update-shoesize-type.dto';
-import { ShoesizeTypeResponse } from './responses/shoesize-type.response';
-import { QueryShoesizeTypeDto } from './dto/query-shoesize-type.dto';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { StdError } from '../../common/swagger/standard-responses';
 import { AuthGuard } from '@nestjs/passport';
+import { ApiBearerAuth, ApiExtraModels, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiCreatedStd, ApiOkArrayStd, ApiOkEmptyStd, ApiOkStd, StdError } from '../../common/swagger/standard-responses';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
+import { CreateShoesizeTypeDto } from './dto/create-shoesize-type.dto';
+import { QueryShoesizeTypeDto } from './dto/query-shoesize-type.dto';
+import { UpdateShoesizeTypeDto } from './dto/update-shoesize-type.dto';
+import { ShoesizeTypeListResponse } from './responses/shoesize-type-list.response';
+import { ShoesizeTypeResponse } from './responses/shoesize-type.response';
+import { ShoesizeTypesService } from './shoesize-types.service';
 
 
 @ApiTags('shoesize-types')
-@ApiExtraModels(ShoesizeTypeResponse)
+@ApiExtraModels(ShoesizeTypeResponse, ShoesizeTypeListResponse)
 @ApiBearerAuth('JWT')
 @Controller('shoesize-types')
 export class ShoesizeTypesController {
@@ -39,13 +38,16 @@ export class ShoesizeTypesController {
     @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Roles('admin')
     @ApiOperation({ summary: 'List of shoesize types' })
-	@ApiOkArrayStd('List of shoesize types', ShoesizeTypeResponse)
+	@ApiOkStd('List of shoesize types', ShoesizeTypeListResponse)
 	@ApiResponse({ status: 400, ...StdError.BadRequest })
 	@ApiResponse({ status: 401, ...StdError.Unauthorized })
 	@ApiResponse({ status: 403, ...StdError.Forbidden })
-	async listAll(@Query() query: QueryShoesizeTypeDto): Promise<ShoesizeTypeResponse[]> {
-		const list = await this.service.ListAll(query);
-		return list as unknown as ShoesizeTypeResponse[];
+	async listAll(@Query() query: QueryShoesizeTypeDto): Promise<ShoesizeTypeListResponse> {
+		const result = await this.service.ListAll(query);
+		return {
+			items: result.items as unknown as ShoesizeTypeResponse[],
+			meta: result.meta
+		};
 	}
 
 	    @Get('all')

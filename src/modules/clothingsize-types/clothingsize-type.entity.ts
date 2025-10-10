@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn } from 'typeorm';
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
 @Entity({ name: 'clothing_sizes' })
 export class ClothingSizeType {
@@ -16,6 +16,24 @@ export class ClothingSizeType {
 
 	@Column({ type: 'boolean', name: 'is_predefined', default: false })
 	is_predefined!: boolean;
+
+	@Column({ 
+		type: 'enum', 
+		name: 'cloth_category',
+		enum: [
+			'pant_men',
+			'shirt_men',
+			'pant_women',
+			'shirt_women',
+			'dress_women',
+			'pant_boy',
+			'shirt_boy',
+			'pant_girl',
+			'shirt_girl',
+			'frock_girl'
+		]
+	})
+	cloth_category!: 'pant_men' | 'shirt_men' | 'pant_women' | 'shirt_women' | 'dress_women' | 'pant_boy' | 'shirt_boy' | 'pant_girl' | 'shirt_girl' | 'frock_girl';
 
 	@CreateDateColumn({ type: 'timestamptz', name: 'created_at' })
 	created_at!: Date;
