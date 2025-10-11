@@ -10,6 +10,7 @@ import { ShoesizeTypesModule } from 'src/modules/shoesize-types/shoesize-types.m
 import { RelationTypesModule } from 'src/modules/relation-types/relation-types.module';
 import { AuthModule } from 'src/modules/auth/auth.module';
 import { getCommonDbConfig } from 'src/config/database.config';
+import { ApiModule } from 'src/modules/api/api.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { getCommonDbConfig } from 'src/config/database.config';
       }),
     }),
     AuthModule,
+    ApiModule,
     DocumentTypesModule,
     BloodGroupTypesModule,
     ClothingSizeTypesModule,
