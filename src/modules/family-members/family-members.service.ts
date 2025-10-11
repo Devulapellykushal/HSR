@@ -139,6 +139,7 @@ export class FamilyMembersService {
                         blood_group_id: payload.personal_detail.blood_group_id ?? currentPd.blood_group_id ?? null,
                         upper_clothing_size_id: payload.personal_detail.upper_clothing_size_id ?? currentPd.upper_clothing_size_id ?? null,
                         lower_clothing_size_id: payload.personal_detail.lower_clothing_size_id ?? currentPd.lower_clothing_size_id ?? null,
+                        dress_clothing_size_id: payload.personal_detail.dress_clothing_size_id ?? currentPd.dress_clothing_size_id ?? null,
                         shoes_size_id: payload.personal_detail.shoes_size_id ?? currentPd.shoes_size_id ?? null,
                     });
                 } else {
@@ -151,6 +152,7 @@ export class FamilyMembersService {
                         blood_group_id: payload.personal_detail.blood_group_id ?? null,
                         upper_clothing_size_id: payload.personal_detail.upper_clothing_size_id ?? null,
                         lower_clothing_size_id: payload.personal_detail.lower_clothing_size_id ?? null,
+                        dress_clothing_size_id: payload.personal_detail.dress_clothing_size_id ?? null,
                         shoes_size_id: payload.personal_detail.shoes_size_id ?? null,
                     });
                 }
@@ -201,6 +203,7 @@ export class FamilyMembersService {
                     blood_group: true,
                     upper_clothing_size: true,
                     lower_clothing_size: true,
+                    dress_clothing_size: true,
                     shoes_size: true,
                 },
             });
@@ -232,6 +235,7 @@ export class FamilyMembersService {
                           blood_group_id: personalWithRel.blood_group_id ?? null,
                           upper_clothing_size_id: personalWithRel.upper_clothing_size_id ?? null,
                           lower_clothing_size_id: personalWithRel.lower_clothing_size_id ?? null,
+                          dress_clothing_size_id: personalWithRel.dress_clothing_size_id ?? null,
                           shoes_size_id: personalWithRel.shoes_size_id ?? null,
                           created_at: personalWithRel.created_at,
                           updated_at: personalWithRel.updated_at,
@@ -239,6 +243,7 @@ export class FamilyMembersService {
                           blood_group: toMini((personalWithRel as any).blood_group),
                           upper_clothing_size: toMini((personalWithRel as any).upper_clothing_size),
                           lower_clothing_size: toMini((personalWithRel as any).lower_clothing_size),
+                          dress_clothing_size: toMini((personalWithRel as any).dress_clothing_size),
                           shoes_size: toMini((personalWithRel as any).shoes_size),
                       }
                     : null,
@@ -318,7 +323,7 @@ export class FamilyMembersService {
         const members = await this.familyMemberRepo.find({
             where: { created_by: user_id },
             relations: { relation_type: true },
-            order: { created_at: 'DESC' },
+            order: { created_at: 'ASC' },
         });
 
         if (!members.length) return [];
@@ -331,14 +336,15 @@ export class FamilyMembersService {
                 blood_group: true,
                 upper_clothing_size: true,
                 lower_clothing_size: true,
+				dress_clothing_size: true,
                 shoes_size: true,
             },
-            order: { created_at: 'DESC' },
+            order: { created_at: 'ASC' },
         });
 
         const health = await this.healthDetailRepo.find({
             where: ids.map((id) => ({ family_member_id: id })),
-            order: { created_at: 'DESC' },
+            order: { created_at: 'ASC' },
         });
 
         // Group details by family_member_id for quick lookup
@@ -385,6 +391,7 @@ export class FamilyMembersService {
                     blood_group_id: pd.blood_group_id ?? null,
                     upper_clothing_size_id: pd.upper_clothing_size_id ?? null,
                     lower_clothing_size_id: pd.lower_clothing_size_id ?? null,
+					dress_clothing_size_id: pd.dress_clothing_size_id ?? null,
                     shoes_size_id: pd.shoes_size_id ?? null,
                     created_at: pd.created_at,
                     updated_at: pd.updated_at,
@@ -392,6 +399,7 @@ export class FamilyMembersService {
                     blood_group: toMini(pd.blood_group),
                     upper_clothing_size: toMini(pd.upper_clothing_size),
                     lower_clothing_size: toMini(pd.lower_clothing_size),
+					dress_clothing_size: toMini(pd.dress_clothing_size),
                     shoes_size: toMini(pd.shoes_size),
                 };
             })(),
@@ -454,6 +462,7 @@ export class FamilyMembersService {
                         blood_group_id: pd.blood_group_id ?? null,
                         upper_clothing_size_id: pd.upper_clothing_size_id ?? null,
                         lower_clothing_size_id: pd.lower_clothing_size_id ?? null,
+						dress_clothing_size_id: pd.dress_clothing_size_id ?? null,
                         shoes_size_id: pd.shoes_size_id ?? null,
                     }),
                 );
@@ -495,6 +504,7 @@ export class FamilyMembersService {
                     blood_group: true,
                     upper_clothing_size: true,
                     lower_clothing_size: true,
+					dress_clothing_size: true,
                     shoes_size: true,
                 },
             });
@@ -530,6 +540,7 @@ export class FamilyMembersService {
                         blood_group_id: pd.blood_group_id ?? null,
                         upper_clothing_size_id: pd.upper_clothing_size_id ?? null,
                         lower_clothing_size_id: pd.lower_clothing_size_id ?? null,
+						dress_clothing_size_id: pd.dress_clothing_size_id ?? null,
                         shoes_size_id: pd.shoes_size_id ?? null,
                         created_at: pd.created_at,
                         updated_at: pd.updated_at,
@@ -542,6 +553,9 @@ export class FamilyMembersService {
                             : null,
                         lower_clothing_size: pd.lower_clothing_size
                             ? { id: (pd.lower_clothing_size as ClothingSizeType).id, name: (pd.lower_clothing_size as ClothingSizeType).name }
+                            : null,
+						dress_clothing_size: pd.dress_clothing_size
+                            ? { id: (pd.dress_clothing_size as ClothingSizeType).id, name: (pd.dress_clothing_size as ClothingSizeType).name }
                             : null,
                         shoes_size: pd.shoes_size
                             ? { id: (pd.shoes_size as ShoesizeType).id, name: (pd.shoes_size as ShoesizeType).name }

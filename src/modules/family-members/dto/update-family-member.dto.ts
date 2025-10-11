@@ -60,6 +60,11 @@ export class UpdatePersonalDetailDto {
 	@IsUUID()
 	lower_clothing_size_id?: string | null;
 
+	@ApiPropertyOptional({ format: 'uuid', example: '33333333-3333-3333-3333-333333333333' })
+	@IsOptional()
+	@IsUUID()
+	dress_clothing_size_id?: string | null;
+
 	@ApiPropertyOptional({ format: 'uuid', example: '44444444-4444-4444-4444-444444444444' })
 	@IsOptional()
 	@IsUUID()

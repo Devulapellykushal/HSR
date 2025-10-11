@@ -51,6 +51,8 @@ export class FamilyMemberPersonalDetailEntityResponse {
 	@ApiProperty({ format: 'uuid', nullable: true })
 	lower_clothing_size_id!: string | null;
 	@ApiProperty({ format: 'uuid', nullable: true })
+	dress_clothing_size_id!: string | null;
+	@ApiProperty({ format: 'uuid', nullable: true })
 	shoes_size_id!: string | null;
 	@ApiProperty({ type: 'string', format: 'date-time' })
 	created_at!: Date;
@@ -65,6 +67,8 @@ export class FamilyMemberPersonalDetailEntityResponse {
 	upper_clothing_size!: IdNameMini | null;
 	@ApiProperty({ type: IdNameMini, nullable: true })
 	lower_clothing_size!: IdNameMini | null;
+	@ApiProperty({ type: IdNameMini, nullable: true })
+	dress_clothing_size!: IdNameMini | null;
 	@ApiProperty({ type: IdNameMini, nullable: true })
 	shoes_size!: IdNameMini | null;
 }

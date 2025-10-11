@@ -56,6 +56,13 @@ export class FamilyMemberPersonalDetail {
 	lower_clothing_size?: ClothingSizeType | null;
 
 	@Column({ type: 'uuid', nullable: true })
+	dress_clothing_size_id?: string | null;
+
+	@ManyToOne(() => ClothingSizeType, { nullable: true, onDelete: 'RESTRICT' })
+	@JoinColumn({ name: 'dress_clothing_size_id' })
+	dress_clothing_size?: ClothingSizeType | null;
+
+	@Column({ type: 'uuid', nullable: true })
 	shoes_size_id?: string | null;
 
 	@ManyToOne(() => ShoesizeType, { nullable: true, onDelete: 'RESTRICT' })

@@ -59,6 +59,11 @@ export class FamilyMemberPersonalDetails1765121912003 implements MigrationInterf
 						isNullable: true,
 					},
 					{
+						name: 'dress_clothing_size_id',
+						type: 'uuid',
+						isNullable: true,
+					},
+					{
 						name: 'shoes_size_id',
 						type: 'uuid',
 						isNullable: true,
@@ -104,6 +109,10 @@ export class FamilyMemberPersonalDetails1765121912003 implements MigrationInterf
 		);
 		await queryRunner.createIndex(
 			'family_member_personal_details',
+			new TableIndex({ name: 'IDX_fmpd_dress_clothing_size_id', columnNames: ['dress_clothing_size_id'] }),
+		);
+		await queryRunner.createIndex(
+			'family_member_personal_details',
 			new TableIndex({ name: 'IDX_fmpd_shoes_size_id', columnNames: ['shoes_size_id'] }),
 		);
 
@@ -146,6 +155,17 @@ export class FamilyMemberPersonalDetails1765121912003 implements MigrationInterf
 			new TableForeignKey({
 				name: 'FK_fmpd_lower_clothing_size',
 				columnNames: ['lower_clothing_size_id'],
+				referencedTableName: 'clothing_sizes',
+				referencedColumnNames: ['id'],
+				onDelete: 'RESTRICT',
+				onUpdate: 'CASCADE',
+			}),
+		);
+		await queryRunner.createForeignKey(
+			'family_member_personal_details',
+			new TableForeignKey({
+				name: 'FK_fmpd_dress_clothing_size',
+				columnNames: ['dress_clothing_size_id'],
 				referencedTableName: 'clothing_sizes',
 				referencedColumnNames: ['id'],
 				onDelete: 'RESTRICT',

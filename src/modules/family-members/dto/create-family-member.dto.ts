@@ -63,6 +63,11 @@ export class CreatePersonalDetailDto {
 	@ApiPropertyOptional({ format: 'uuid' })
 	@IsOptional()
 	@IsUUID()
+	dress_clothing_size_id?: string | null;
+
+	@ApiPropertyOptional({ format: 'uuid' })
+	@IsOptional()
+	@IsUUID()
 	shoes_size_id?: string | null;
 }
 
