@@ -14,7 +14,7 @@ export class ApiController {
 
 	@Get('dropdown')
 	@UseGuards(AuthGuard('jwt'))
-	@ApiOperation({ summary: 'Get dropdown lists for blood groups, clothing sizes, shoe sizes' })
+	@ApiOperation({ summary: 'Get dropdown lists for blood groups, clothing sizes, shoe sizes, relation types' })
 	@ApiOkStd('Dropdown lists', DropdownResponse)
 	@ApiResponse({ status: 400, ...StdError.BadRequest })
 	@ApiResponse({ status: 401, ...StdError.Unauthorized })
