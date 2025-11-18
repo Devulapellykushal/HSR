@@ -272,13 +272,23 @@ class Project(TimeStampedModel, SoftDeleteModel):
         """Return list of selected configurations."""
         if not self.configurations:
             return []
-        return [key for key, value in self.configurations.items() if value]
+        # Handle both dict and list formats
+        if isinstance(self.configurations, list):
+            return self.configurations
+        if isinstance(self.configurations, dict):
+            return [key for key, value in self.configurations.items() if value]
+        return []
 
     def get_amenities_list(self):
         """Return list of selected amenities."""
         if not self.amenities:
             return []
-        return [key for key, value in self.amenities.items() if value]
+        # Handle both dict and list formats
+        if isinstance(self.amenities, list):
+            return self.amenities
+        if isinstance(self.amenities, dict):
+            return [key for key, value in self.amenities.items() if value]
+        return []
 
     def increment_view_count(self):
         """Increment view count."""
@@ -367,12 +377,20 @@ class SystemStatus(TimeStampedModel):
 
     # Backup Information
     last_backup_at = models.DateTimeField(auto_now_add=True)
+    auto_backup = models.BooleanField(default=False, help_text="Enable automatic daily backups")
 
     # Session Configuration
-    session_timeout = models.IntegerField(default=60, help_text="Session timeout in minutes")
+    session_timeout = models.IntegerField(default=30, help_text="Session timeout in minutes")
 
     # Maintenance Mode
     maintenance_mode = models.BooleanField(default=False)
+    
+    # Site Configuration
+    site_name = models.CharField(max_length=255, default='HSR Green Homes', help_text="Site name")
+    site_url = models.URLField(default='https://hsrgreenhomes.com', help_text="Site URL")
+    
+    # Email Notifications
+    email_notifications = models.BooleanField(default=True, help_text="Enable email notifications for new leads")
 
     class Meta:
         db_table = 'system_status'
@@ -498,8 +516,66 @@ class HomePageContent(TimeStampedModel):
     @classmethod
     def get_current(cls):
         """Get or create the single home page content instance."""
-        content, created = cls.objects.get_or_create(id=1)
-        return content
+        # Try to get existing record first
+        try:
+            return cls.objects.first()
+        except cls.DoesNotExist:
+            pass
+        # Create new instance if none exists
+        return cls.objects.create()
+
+
+class PageHeroImages(TimeStampedModel):
+    """
+    Model for managing hero images for Projects, About, and Contact pages.
+    Single instance model - only one record should exist.
+    """
+    
+    projects_hero_image_url = models.URLField(
+        blank=True,
+        null=True,
+        help_text='URL for Projects page hero background image'
+    )
+    about_hero_image_url = models.URLField(
+        blank=True,
+        null=True,
+        help_text='URL for About page hero background image'
+    )
+    about_our_story_image_url = models.URLField(
+        blank=True,
+        null=True,
+        help_text='URL for About page "Our Story" section image'
+    )
+    contact_hero_image_url = models.URLField(
+        blank=True,
+        null=True,
+        help_text='URL for Contact page hero background image'
+    )
+
+    class Meta:
+        db_table = 'page_hero_images'
+        verbose_name = 'Page Hero Images'
+        verbose_name_plural = 'Page Hero Images'
+
+    def __str__(self):
+        return f"Page Hero Images - Last Updated: {self.updated_at}"
+
+    def save(self, *args, **kwargs):
+        """Ensure only one instance exists."""
+        if not self.pk and PageHeroImages.objects.exists():
+            raise ValidationError('Only one PageHeroImages instance is allowed.')
+        return super().save(*args, **kwargs)
+
+    @classmethod
+    def get_current(cls):
+        """Get or create the single page hero images instance."""
+        # Try to get existing record first
+        try:
+            return cls.objects.first()
+        except cls.DoesNotExist:
+            pass
+        # Create new instance if none exists
+        return cls.objects.create()
 
 
 class FeaturedProject(TimeStampedModel):
@@ -532,6 +608,83 @@ class FeaturedProject(TimeStampedModel):
 
     def __str__(self):
         return f"Featured: {self.project.title} (Order: {self.display_order})"
+
+
+class ContactSettings(TimeStampedModel):
+    """
+    Model for contact settings and communication configuration.
+    Single instance model - only one record should exist.
+    """
+    
+    # WhatsApp Settings
+    whatsapp_enabled = models.BooleanField(default=True, help_text='Enable WhatsApp integration')
+    whatsapp_number = models.CharField(max_length=20, default='+91 9876543210', help_text='WhatsApp contact number')
+    whatsapp_business_hours = models.CharField(max_length=100, default='9:00 AM - 8:00 PM', help_text='WhatsApp business hours')
+    whatsapp_auto_reply = models.TextField(
+        default='Hello! Thank you for contacting HSR Green Homes. We will get back to you shortly.',
+        help_text='WhatsApp auto-reply message'
+    )
+    
+    # Phone Settings
+    primary_phone = models.CharField(max_length=20, default='+91 9876543210', help_text='Primary phone number')
+    secondary_phone = models.CharField(max_length=20, blank=True, null=True, help_text='Secondary phone number')
+    toll_free_number = models.CharField(max_length=20, blank=True, null=True, help_text='Toll-free number')
+    phone_business_hours = models.CharField(max_length=100, default='9:00 AM - 6:00 PM', help_text='Phone business hours')
+    
+    # Email Settings
+    info_email = models.EmailField(default='info@hsrgreenhomes.com', help_text='Info email address')
+    sales_email = models.EmailField(default='sales@hsrgreenhomes.com', help_text='Sales email address')
+    support_email = models.EmailField(default='support@hsrgreenhomes.com', help_text='Support email address')
+    email_auto_reply_enabled = models.BooleanField(default=True, help_text='Enable email auto-reply')
+    email_auto_reply_subject = models.CharField(
+        max_length=255,
+        default='Thank you for contacting HSR Green Homes',
+        help_text='Email auto-reply subject'
+    )
+    email_auto_reply_message = models.TextField(
+        default='We have received your inquiry and will respond within 24 hours.',
+        help_text='Email auto-reply message'
+    )
+    
+    # Address Settings
+    street_address = models.CharField(max_length=255, default='HSR Green Homes Building', help_text='Street address')
+    area = models.CharField(max_length=100, default='Karimnagar', help_text='Area/Locality')
+    city = models.CharField(max_length=100, default='Karimnagar', help_text='City')
+    state = models.CharField(max_length=100, default='Telangana', help_text='State')
+    pincode = models.CharField(max_length=10, default='505001', help_text='Pincode')
+    country = models.CharField(max_length=100, default='India', help_text='Country')
+    google_maps_embed_code = models.TextField(
+        blank=True,
+        null=True,
+        help_text='Google Maps embed code or URL'
+    )
+    
+    # Social Media Links
+    facebook_url = models.URLField(blank=True, null=True, help_text='Facebook page URL')
+    instagram_url = models.URLField(blank=True, null=True, help_text='Instagram profile URL')
+    twitter_url = models.URLField(blank=True, null=True, help_text='Twitter profile URL')
+    linkedin_url = models.URLField(blank=True, null=True, help_text='LinkedIn company URL')
+    youtube_url = models.URLField(blank=True, null=True, help_text='YouTube channel URL')
+    
+    class Meta:
+        db_table = 'contact_settings'
+        verbose_name = 'Contact Settings'
+        verbose_name_plural = 'Contact Settings'
+    
+    def __str__(self):
+        return f"Contact Settings - Last Updated: {self.updated_at}"
+    
+    def save(self, *args, **kwargs):
+        """Ensure only one instance exists."""
+        if not self.pk and ContactSettings.objects.exists():
+            raise ValidationError('Only one ContactSettings instance is allowed.')
+        return super().save(*args, **kwargs)
+    
+    @classmethod
+    def get_current(cls):
+        """Get or create the single contact settings instance."""
+        settings, created = cls.objects.get_or_create(id=1)
+        return settings
 
 
 class ProjectGalleryImage(TimeStampedModel, SoftDeleteModel):
@@ -641,3 +794,71 @@ PROJECT_AMENITIES = [
     ('garden', 'Garden'),
     ('community_hall', 'Community Hall'),
 ]
+
+
+def uploaded_image_path(instance, filename):
+    """Generate path for uploaded images in public/uploads/."""
+    ext = filename.split('.')[-1]
+    filename = f"{uuid.uuid4()}.{ext}"
+    return os.path.join('uploads', filename)
+
+
+class UploadedImage(TimeStampedModel):
+    """
+    Model for storing uploaded images by admin.
+    Images are stored in public/uploads/ and accessible via public URL.
+    """
+    
+    title = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text='Optional title/name for the image'
+    )
+    image_file = models.ImageField(
+        upload_to=uploaded_image_path,
+        validators=[FileExtensionValidator(['jpg', 'jpeg', 'png', 'webp', 'gif'])],
+        help_text='Uploaded image file'
+    )
+    image_url = models.URLField(
+        blank=True,
+        null=True,
+        help_text='Public URL for the image (auto-generated)'
+    )
+    description = models.TextField(
+        blank=True,
+        null=True,
+        help_text='Optional description for the image'
+    )
+    uploaded_by = models.ForeignKey(
+        AdminUser,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='uploaded_images',
+        help_text='Admin user who uploaded this image'
+    )
+    
+    class Meta:
+        db_table = 'uploaded_images'
+        verbose_name = 'Uploaded Image'
+        verbose_name_plural = 'Uploaded Images'
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.title or 'Untitled'} - {self.image_file.name if self.image_file else 'No file'}"
+    
+    def get_image_url(self, request=None):
+        """Generate public URL for the image."""
+        try:
+            if hasattr(self, 'image_file') and self.image_file:
+                if request:
+                    return request.build_absolute_uri(self.image_file.url)
+                # Fallback: construct URL manually
+                from django.conf import settings
+                base_url = getattr(settings, 'BASE_URL', 'http://localhost:8000')
+                return f"{base_url}{self.image_file.url}"
+        except (AttributeError, ValueError):
+            pass
+        # Return stored URL if available
+        return getattr(self, 'image_url', None) or ''

@@ -2,8 +2,8 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from .models import (
     AdminUser, Project, Lead, Testimonial, SystemStatus,
-    HomePageContent, FeaturedProject,
-    ProjectGalleryImage, ProjectFloorPlan
+    HomePageContent, FeaturedProject, ContactSettings,
+    ProjectGalleryImage, ProjectFloorPlan, PageHeroImages
 )
 
 
@@ -168,6 +168,29 @@ class HomePageContentAdmin(admin.ModelAdmin):
         return False
 
 
+@admin.register(PageHeroImages)
+class PageHeroImagesAdmin(admin.ModelAdmin):
+    """Admin for PageHeroImages model."""
+    fieldsets = (
+        ('Page Hero Images', {
+            'fields': ('projects_hero_image_url', 'about_hero_image_url', 'about_our_story_image_url', 'contact_hero_image_url')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    readonly_fields = ['created_at', 'updated_at']
+
+    def has_add_permission(self, request):
+        # Prevent creating multiple page hero images records
+        return not PageHeroImages.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        # Prevent deleting page hero images
+        return False
+
+
 @admin.register(ProjectGalleryImage)
 class ProjectGalleryImageAdmin(admin.ModelAdmin):
     """Admin for ProjectGalleryImage model."""
@@ -199,3 +222,43 @@ class FeaturedProjectAdmin(admin.ModelAdmin):
     ordering = ['display_order', '-created_at']
     readonly_fields = ['created_at', 'updated_at']
     autocomplete_fields = ['project']
+
+
+@admin.register(ContactSettings)
+class ContactSettingsAdmin(admin.ModelAdmin):
+    """Admin for ContactSettings model."""
+    fieldsets = (
+        ('WhatsApp Settings', {
+            'fields': ('whatsapp_enabled', 'whatsapp_number', 'whatsapp_business_hours', 'whatsapp_auto_reply')
+        }),
+        ('Phone Settings', {
+            'fields': ('primary_phone', 'secondary_phone', 'toll_free_number', 'phone_business_hours')
+        }),
+        ('Email Settings', {
+            'fields': (
+                'info_email', 'sales_email', 'support_email',
+                'email_auto_reply_enabled', 'email_auto_reply_subject', 'email_auto_reply_message'
+            )
+        }),
+        ('Address Settings', {
+            'fields': (
+                'street_address', 'area', 'city', 'state', 'pincode', 'country', 'google_maps_embed_code'
+            )
+        }),
+        ('Social Media', {
+            'fields': ('facebook_url', 'instagram_url', 'twitter_url', 'linkedin_url', 'youtube_url')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    readonly_fields = ['created_at', 'updated_at']
+
+    def has_add_permission(self, request):
+        # Prevent creating multiple contact settings records
+        return not ContactSettings.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        # Prevent deleting contact settings
+        return False
