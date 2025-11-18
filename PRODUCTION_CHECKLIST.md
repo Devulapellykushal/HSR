@@ -66,12 +66,33 @@ bun run lint
 
 ## Environment Variables Template
 
+### For Render Backend:
+
 Create `.env.local`:
 ```env
-NEXT_PUBLIC_API_BASE_URL=https://yourdomain.com/api
+# Replace 'your-app-name' with your actual Render service name
+NEXT_PUBLIC_API_BASE_URL=https://your-app-name.onrender.com/api
 ```
+
+### For Custom Domain Backend:
+
+```env
+NEXT_PUBLIC_API_BASE_URL=https://api.yourdomain.com/api
+```
+
+## Render-Specific Notes
+
+If deploying backend on Render:
+- ✅ Use Render URL: `https://your-app-name.onrender.com/api`
+- ✅ Backend CORS must include your frontend domain
+- ✅ Backend `BASE_URL` should be: `https://your-app-name.onrender.com`
+- ⚠️ Free tier has cold starts (first request may be slow)
+
+See `RENDER_DEPLOYMENT.md` for complete Render deployment guide.
 
 ## Need Help?
 
-See `PRODUCTION_DEPLOYMENT.md` for detailed instructions.
+- **General deployment:** See `PRODUCTION_DEPLOYMENT.md`
+- **Render-specific:** See `RENDER_DEPLOYMENT.md`
+- **Quick start:** See `RENDER_QUICK_START.md`
 

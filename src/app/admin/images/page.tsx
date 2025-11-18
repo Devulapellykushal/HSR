@@ -298,7 +298,7 @@ export default function ImageUploadPage() {
                 >
                   <div className="relative aspect-video bg-gray-100">
                     <img
-                      src={image.image_url}
+                      src={image.image_url || 'https://via.placeholder.com/300'}
                       alt={image.title || 'Uploaded image'}
                       className="w-full h-full object-cover"
                     />

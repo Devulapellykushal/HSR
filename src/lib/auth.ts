@@ -1,5 +1,7 @@
 'use client';
 
+import { getAdminSettings } from './adminSettingsStore';
+
 const TOKEN_KEY = 'hsr_access_token';
 const REFRESH_TOKEN_KEY = 'hsr_refresh_token';
 const USER_KEY = 'hsr_user';
@@ -116,6 +118,17 @@ export const validateSession = async (): Promise<boolean> => {
     return true;
   } catch {
     return false;
+  }
+};
+
+// Admin Passcode - get from admin settings
+export const getAdminPasscode = (): string => {
+  if (typeof window === 'undefined') return 'admin';
+  try {
+    const settings = getAdminSettings();
+    return settings.password || 'admin';
+  } catch {
+    return 'admin';
   }
 };
 

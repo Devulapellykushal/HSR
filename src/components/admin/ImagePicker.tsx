@@ -237,11 +237,11 @@ export default function ImagePicker({
                           ? 'border-[#2E936B] ring-2 ring-[#2E936B]'
                           : 'border-gray-200 hover:border-[#2E936B]'
                       }`}
-                      onClick={() => handleSelectImage(image.image_url)}
+                      onClick={() => image.image_url && handleSelectImage(image.image_url)}
                     >
                       <div className="aspect-square bg-gray-100">
                         <img
-                          src={image.image_url}
+                          src={image.image_url || 'https://via.placeholder.com/300'}
                           alt={image.title || 'Image'}
                           className="w-full h-full object-cover"
                         />

@@ -523,7 +523,7 @@ export default function ContactSettingsPage() {
               Social Media Links
             </h3>
             <p className="text-sm text-gray-600 mb-4">
-              All social media links are optional. Leave blank if you don't have a profile on that platform.
+              All social media links are optional. Leave blank if you don&apos;t have a profile on that platform.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               {[

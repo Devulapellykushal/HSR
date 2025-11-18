@@ -62,8 +62,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   useEffect(() => {
     if (!isAuthorized || isPublicAdminRoute) return;
 
-    let sessionCheckInterval: NodeJS.Timer | null = null;
-    let healthCheckInterval: NodeJS.Timer | null = null;
+    let sessionCheckInterval: ReturnType<typeof setInterval> | null = null;
+    let healthCheckInterval: ReturnType<typeof setInterval> | null = null;
     let isChecking = false;
 
     const validateSession = async () => {
@@ -127,7 +127,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   // Idle session timeout with warning
   useEffect(() => {
     if (!isAuthorized || isPublicAdminRoute) return;
-    let interval: NodeJS.Timer | null = null;
+    let interval: ReturnType<typeof setInterval> | null = null;
     let lastAction = Date.now();
     const reset = () => {
       lastAction = Date.now();

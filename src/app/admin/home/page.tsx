@@ -150,7 +150,7 @@ export default function HomePageEditor() {
             Home Page Editor
           </h2>
           <p className="text-base" style={{ color: '#6c757d' }}>
-            Customize your website's home page content
+            Customize your website&apos;s home page content
           </p>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto flex-shrink-0">
@@ -331,7 +331,7 @@ export default function HomePageEditor() {
                 Project Selection
               </h4>
               <p className="text-sm" style={{ color: '#6c757d' }}>
-                Featured projects are automatically selected from projects marked as 'Featured'
+                Featured projects are automatically selected from projects marked as &apos;Featured&apos;
                 in the Projects Management section.
               </p>
             </div>

@@ -169,7 +169,7 @@ export default function ProjectDetailPage({ params }: ProjectPageProps) {
                       {galleryImages.map((img) => (
                         <div key={img.id} className="relative aspect-square rounded-lg overflow-hidden border border-gray-200">
                           <Image
-                            src={img.image_url}
+                            src={img.image_url || DEFAULT_PROJECT_IMAGE}
                             alt={img.caption || project.title}
                             fill
                             className="object-cover"

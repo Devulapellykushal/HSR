@@ -497,7 +497,7 @@ export default function EditProject() {
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 mt-4">
                     {formData.galleryImages.map((img) => (
                       <div key={img.id} className="relative">
-                        <img src={img.image_url} alt={img.caption || 'Gallery image'} className="w-full h-24 sm:h-32 object-cover rounded-lg" />
+                        <img src={img.image_url || DEFAULT_PROJECT_IMAGE} alt={img.caption || 'Gallery image'} className="w-full h-24 sm:h-32 object-cover rounded-lg" />
                         <button
                           onClick={async () => {
                             try {

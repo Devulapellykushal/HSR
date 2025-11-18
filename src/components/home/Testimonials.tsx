@@ -45,7 +45,7 @@ export default function Testimonials() {
                     </div>
                   </div>
                   <p className="text-gray-600 text-sm sm:text-base leading-relaxed">
-                    "{testimonial.testimonial_text}"
+                    &quot;{testimonial.testimonial_text}&quot;
                   </p>
                 </div>
               );

@@ -366,7 +366,7 @@ export default function TestimonialsManagement() {
                     {testimonial.project_title || 'No project'}
                 </p>
                 <p className="text-sm italic mb-4" style={{ color: '#343A40' }}>
-                    "{testimonial.quote}"
+                    &quot;{testimonial.quote}&quot;
                 </p>
                   {!testimonial.is_active && (
                     <span className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded">

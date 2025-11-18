@@ -183,7 +183,7 @@ export default function PageHeroImagesEditor() {
                 About Page - Our Story Section
               </h3>
               <p className="text-sm" style={{ color: '#6c757d' }}>
-                Image for the "Our Story" section on the About page
+                Image for the &quot;Our Story&quot; section on the About page
               </p>
             </div>
           </div>
