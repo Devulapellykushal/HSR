@@ -7,6 +7,18 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 
+const LOGO_CLICK_COUNT_KEY = 'hsr_logo_click_count';
+
+// Reset logo click count after successful login
+const resetLogoClickCount = (): void => {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.removeItem(LOGO_CLICK_COUNT_KEY);
+  } catch {
+    // Ignore localStorage errors
+  }
+};
+
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -33,6 +45,9 @@ function LoginForm() {
       // Store tokens and user
       setTokens(response.tokens);
       setUser(response.user);
+
+      // Reset logo click count after successful login
+      resetLogoClickCount();
 
       // Get returnTo parameter or default to dashboard
       const returnTo = searchParams.get('returnTo') || '/admin/dashboard';

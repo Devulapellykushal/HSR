@@ -1,60 +1,101 @@
 'use client';
 
-import Link from 'next/link';
-import Image from 'next/image';
-import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
 import { useContactSettings } from '@/hooks/useContactSettings';
+import { clearAdminAuthentication } from '@/lib/auth';
 import { buildWhatsAppLink } from '@/lib/contactStore';
+import Image from 'next/image';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import { useEffect, useMemo, useRef, useState } from 'react';
+
+const LOGO_CLICK_COUNT_KEY = 'hsr_logo_click_count';
+
+// Helper functions to manage click count in localStorage
+const getClickCount = (): number => {
+  if (typeof window === 'undefined') return 0;
+  try {
+    const count = localStorage.getItem(LOGO_CLICK_COUNT_KEY);
+    return count ? parseInt(count, 10) : 0;
+  } catch {
+    return 0;
+  }
+};
+
+const setClickCount = (count: number): void => {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(LOGO_CLICK_COUNT_KEY, count.toString());
+  } catch {
+    // Ignore localStorage errors
+  }
+};
+
+const resetClickCount = (): void => {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.removeItem(LOGO_CLICK_COUNT_KEY);
+  } catch {
+    // Ignore localStorage errors
+  }
+};
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
-  const clickCountRef = useRef(0);
   const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const navRef = useRef<HTMLElement>(null);
   const contact = useContactSettings();
   const whatsappLink =
     contact.whatsapp.enabled && contact.whatsapp.number
       ? buildWhatsAppLink(contact.whatsapp.number)
       : '';
 
-  const handleLogoClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    clickCountRef.current += 1;
-    const currentCount = clickCountRef.current;
-
-    // Clear existing timeout
-    if (clickTimeoutRef.current) {
-      clearTimeout(clickTimeoutRef.current);
-    }
-
-    // If clicked 5 times, navigate to admin login immediately
-    if (currentCount >= 5) {
-      clickCountRef.current = 0;
+  const handleLogoClick = useMemo(() => {
+    return (e: React.MouseEvent) => {
+      e.preventDefault();
+      
+      // Get current count from localStorage
+      const currentCount = getClickCount();
+      const newCount = currentCount + 1;
+      
+      // Clear existing timeout
       if (clickTimeoutRef.current) {
         clearTimeout(clickTimeoutRef.current);
       }
-      router.push('/admin/login');
-      return;
-    }
 
-    // If single click, wait 500ms to see if more clicks come
-    if (currentCount === 1) {
-      clickTimeoutRef.current = setTimeout(() => {
-        // If still only 1 click after 500ms, navigate to home
-        if (clickCountRef.current === 1) {
-          router.push('/');
+      // If clicked 5 times, force admin logout and navigate to admin login
+      if (newCount >= 5) {
+        resetClickCount();
+        if (clickTimeoutRef.current) {
+          clearTimeout(clickTimeoutRef.current);
         }
-        clickCountRef.current = 0;
-      }, 500);
-    } else {
-      // For multiple clicks (2-4), wait 3 seconds before resetting
-      clickTimeoutRef.current = setTimeout(() => {
-        clickCountRef.current = 0;
-      }, 3000);
-    }
-  };
+        // Force logout even if already logged in
+        clearAdminAuthentication();
+        router.push('/admin/login');
+        return;
+      }
+
+      // Update count in localStorage
+      setClickCount(newCount);
+
+      // If single click, wait 500ms to see if more clicks come
+      if (newCount === 1) {
+        clickTimeoutRef.current = setTimeout(() => {
+          // If still only 1 click after 500ms, navigate to home
+          if (getClickCount() === 1) {
+            router.push('/');
+          }
+          resetClickCount();
+        }, 500);
+      } else {
+        // For multiple clicks (2-4), wait 3 seconds before resetting
+        clickTimeoutRef.current = setTimeout(() => {
+          resetClickCount();
+        }, 3000);
+      }
+    };
+  }, [router]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -65,16 +106,27 @@ export default function Navbar() {
     };
   }, []);
 
-  // Reset counter when pathname changes
+  // Close mobile menu when clicking outside
   useEffect(() => {
-    clickCountRef.current = 0;
-    if (clickTimeoutRef.current) {
-      clearTimeout(clickTimeoutRef.current);
+    const handleClickOutside = (event: Event) => {
+      if (isMenuOpen && navRef.current && !navRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    if (isMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
     }
-  }, [pathname]);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isMenuOpen]);
 
   return (
-    <nav className="bg-white shadow-md sticky top-0 z-50">
+    <nav ref={navRef} className="bg-white shadow-md sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-14 sm:h-16 md:h-20">
           {/* Logo */}
