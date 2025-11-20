@@ -1,8 +1,9 @@
 'use client';
 
-import { clearAdminAuthentication, isAdminAuthenticated, subscribeToAdminLogoutAll } from '@/lib/auth';
-import Link from 'next/link';
+import SessionLogoutModal from '@/components/common/SessionLogoutModal';
+import { clearAdminAuthentication, isAdminAuthenticated, isSessionLoggedOut, subscribeToAdminLogoutAll, subscribeToSessionLogout } from '@/lib/auth';
 import Image from 'next/image';
+import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import {
@@ -29,6 +30,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
+  const [showSessionLogoutModal, setShowSessionLogoutModal] = useState(false);
   const isLoginRoute = pathname === '/admin/login';
   const isForgotRoute = pathname === '/admin/forgot';
   const isChangePasscodeRoute = pathname === '/admin/change-passcode';
@@ -58,6 +60,37 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     return unsubscribe;
   }, [router]);
 
+  // Listen for session logout from another device
+  useEffect(() => {
+    if (isPublicAdminRoute) return;
+
+    const unsubscribe = subscribeToSessionLogout(() => {
+      setShowSessionLogoutModal(true);
+      setIsAuthorized(false);
+    });
+
+    // Also listen for custom event
+    const handleSessionLoggedOut = () => {
+      if (isSessionLoggedOut()) {
+        setShowSessionLogoutModal(true);
+        setIsAuthorized(false);
+      }
+    };
+
+    window.addEventListener('session-logged-out', handleSessionLoggedOut);
+
+    // Check on mount if session is already logged out
+    if (isSessionLoggedOut() && isAdminAuthenticated()) {
+      setShowSessionLogoutModal(true);
+      setIsAuthorized(false);
+    }
+
+    return () => {
+      unsubscribe();
+      window.removeEventListener('session-logged-out', handleSessionLoggedOut);
+    };
+  }, [isPublicAdminRoute, router]);
+
   // Session validation - check if token is still valid periodically
   useEffect(() => {
     if (!isAuthorized || isPublicAdminRoute) return;
@@ -75,12 +108,21 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         // Try to get current user - if this fails, session is invalid
         await authService.getCurrentUser();
       } catch (error: any) {
-        // If 401 or token invalid, logout
+        // If 401 or token invalid, check if it's a session logout from another device
         if (error?.response?.status === 401 || error?.response?.status === 403) {
-          const { clearAdminAuthentication } = await import('@/lib/auth');
-          clearAdminAuthentication();
+          const { clearAdminAuthentication, isSessionLoggedOut } = await import('@/lib/auth');
+          
+          // Check if session was marked as logged out (by API interceptor)
+          if (isSessionLoggedOut()) {
+            // Session was logged out from another device - modal will be shown by the event listener
+            setShowSessionLogoutModal(true);
+          } else {
+            // Regular session expiry - just redirect to login
+            clearAdminAuthentication();
+            router.replace('/admin/login');
+          }
+          
           setIsAuthorized(false);
-          router.replace('/admin/login');
         }
       } finally {
         isChecking = false;
@@ -212,7 +254,15 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] flex">
+    <>
+      <SessionLogoutModal
+        isOpen={showSessionLogoutModal}
+        onClose={() => {
+          setShowSessionLogoutModal(false);
+          clearAdminAuthentication();
+        }}
+      />
+      <div className="min-h-screen bg-[#F8F9FA] flex">
       {/* Session warning banner - responsive design */}
       {secondsLeft <= WARNING_SECONDS && secondsLeft > 0 && (
         <div className="fixed top-2 left-1/2 -translate-x-1/2 z-50 px-3 sm:px-4 py-2 rounded-lg bg-yellow-100 text-yellow-800 border border-yellow-300 shadow-lg max-w-[90%] sm:max-w-md md:max-w-lg">
@@ -329,6 +379,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         </div>
       </main>
     </div>
+    </>
   );
 }
 

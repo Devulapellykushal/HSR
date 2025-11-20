@@ -1,5 +1,5 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
-import { getToken, getRefreshToken, clearTokens, setTokens } from './auth';
+import { clearTokens, getRefreshToken, getToken, markSessionLoggedOut, setTokens } from './auth';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api';
 const api = axios.create({
@@ -100,15 +100,28 @@ api.interceptors.response.use(
 
         return api(originalRequest);
       } catch (refreshError) {
-        // Refresh failed, redirect to login
+        // Refresh failed - could be session expired or logged out from another device
         processQueue(refreshError as AxiosError, null);
         isRefreshing = false;
+        
+        // Check if this is a 401 (unauthorized) which likely means logged out from another device
+        const axiosError = refreshError as AxiosError;
+        if (axiosError.response?.status === 401) {
+          // Mark session as logged out from another device
+          markSessionLoggedOut();
+          // Dispatch custom event to notify components
+          if (typeof window !== 'undefined') {
+            const logoutEvent = new CustomEvent('session-logged-out');
+            window.dispatchEvent(logoutEvent);
+          }
+        }
+        
         clearTokens();
         // Broadcast logout event for session expiry
         if (typeof window !== 'undefined') {
           const logoutEvent = new CustomEvent('session-expired');
           window.dispatchEvent(logoutEvent);
-          window.location.href = '/admin/login';
+          // Don't redirect immediately - let the modal handle it
         }
         return Promise.reject(refreshError);
       }
@@ -116,12 +129,18 @@ api.interceptors.response.use(
 
     // Handle 401 after refresh attempt - session expired or invalidated
     if (error.response?.status === 401 && originalRequest._retry) {
-      // Token refresh failed or token was invalidated (e.g., new login from Swagger)
+      // Token refresh failed or token was invalidated (e.g., new login from another device)
+      // Mark session as logged out from another device
+      markSessionLoggedOut();
       clearTokens();
       if (typeof window !== 'undefined') {
-        const logoutEvent = new CustomEvent('session-expired');
+        // Dispatch session logged out event
+        const logoutEvent = new CustomEvent('session-logged-out');
         window.dispatchEvent(logoutEvent);
-        window.location.href = '/admin/login';
+        // Also dispatch session expired for backward compatibility
+        const expiredEvent = new CustomEvent('session-expired');
+        window.dispatchEvent(expiredEvent);
+        // Don't redirect immediately - let the modal handle it
       }
       return Promise.reject(error);
     }

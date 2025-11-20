@@ -1,8 +1,27 @@
 'use client';
 
 import { HeroSection, homepageService, StatisticsSection } from '@/services/homepageService';
+import { invalidateHomepageCache } from '@/hooks/useHomepage';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+
+// Clear any localStorage cache that might interfere
+const clearHomepageLocalStorage = () => {
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.removeItem('hsr_home_content');
+      // Also clear any other potential cache keys
+      const keys = Object.keys(localStorage);
+      keys.forEach(key => {
+        if (key.includes('homepage') || key.includes('home_content')) {
+          localStorage.removeItem(key);
+        }
+      });
+    } catch (e) {
+      console.warn('Failed to clear localStorage cache:', e);
+    }
+  }
+};
 import {
   FiArrowUpRight,
   FiBarChart2,
@@ -66,32 +85,60 @@ export default function HomePageEditor() {
   const fetchHomePageData = async () => {
     try {
       setLoading(true);
-      const [hero, stats] = await Promise.all([
-        homepageService.getHeroSection(),
-        homepageService.getStatisticsSection(),
+      setSaveState('idle');
+      
+      // Fetch both sections in parallel
+      const [heroResponse, statsResponse] = await Promise.all([
+        homepageService.getHeroSection().catch(err => {
+          console.error('Error fetching hero section:', err);
+          return null;
+        }),
+        homepageService.getStatisticsSection().catch(err => {
+          console.error('Error fetching statistics section:', err);
+          return null;
+        }),
       ]);
       
-      // Convert null values to empty strings to avoid React warnings
-      setHeroData({
-        hero_title: hero.hero_title || '',
-        hero_subtitle: hero.hero_subtitle || '',
-        hero_background_image: hero.hero_background_image || '',
-        hero_cta_button_text: hero.hero_cta_button_text || '',
-      });
+      // Set hero data - use actual values from API, preserve null/empty as empty string for display
+      if (heroResponse) {
+        console.log('Hero section data received:', heroResponse);
+        setHeroData({
+          hero_title: heroResponse.hero_title ?? '',
+          hero_subtitle: heroResponse.hero_subtitle ?? '',
+          hero_background_image: heroResponse.hero_background_image ?? '',
+          hero_cta_button_text: heroResponse.hero_cta_button_text ?? '',
+        });
+      } else {
+        console.warn('Hero section data not received');
+      }
       
-      setStatisticsData({
-        stats_experience_value: stats.stats_experience_value || '',
-        stats_experience_label: stats.stats_experience_label || '',
-        stats_projects_value: stats.stats_projects_value || '',
-        stats_projects_label: stats.stats_projects_label || '',
-        stats_families_value: stats.stats_families_value || '',
-        stats_families_label: stats.stats_families_label || '',
-        stats_sqft_value: stats.stats_sqft_value || '',
-        stats_sqft_label: stats.stats_sqft_label || '',
-      });
+      // Set statistics data - use actual values from API, preserve null/empty as empty string for display
+      if (statsResponse) {
+        console.log('Statistics section data received:', statsResponse);
+        setStatisticsData({
+          stats_experience_value: statsResponse.stats_experience_value ?? '',
+          stats_experience_label: statsResponse.stats_experience_label ?? '',
+          stats_projects_value: statsResponse.stats_projects_value ?? '',
+          stats_projects_label: statsResponse.stats_projects_label ?? '',
+          stats_families_value: statsResponse.stats_families_value ?? '',
+          stats_families_label: statsResponse.stats_families_label ?? '',
+          stats_sqft_value: statsResponse.stats_sqft_value ?? '',
+          stats_sqft_label: statsResponse.stats_sqft_label ?? '',
+        });
+      } else {
+        console.warn('Statistics section data not received');
+      }
+      
+      // If both failed, show error
+      if (!heroResponse && !statsResponse) {
+        throw new Error('Failed to load home page content');
+      }
     } catch (err: any) {
       console.error('Failed to load home page data:', err);
       setSaveState('error');
+      // Show error message but don't block the UI
+      const errorMsg = err.response?.data?.message || err.message || 'Failed to load home page content. Please refresh the page.';
+      console.error('Homepage data fetch error:', errorMsg);
     } finally {
       setLoading(false);
     }
@@ -108,17 +155,47 @@ export default function HomePageEditor() {
     setIsSaving(true);
     setSaveState('idle');
     try {
+      console.log('Saving hero data:', heroData);
+      console.log('Saving statistics data:', statisticsData);
+      
       // Save each section separately
-      await Promise.all([
+      const [heroResult, statsResult] = await Promise.all([
         homepageService.updateHeroSection(heroData),
         homepageService.updateStatisticsSection(statisticsData),
       ]);
+      
+      console.log('Hero section saved:', heroResult);
+      console.log('Statistics section saved:', statsResult);
+      
       setSaveState('success');
-      setTimeout(() => setSaveState('idle'), 3000);
+      
+      // Clear any localStorage cache that might interfere
+      clearHomepageLocalStorage();
+      
+      // Invalidate homepage cache so frontend shows updated content
+      invalidateHomepageCache();
+      
+      // Force a page reload event to ensure all components refresh
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('homepage-data-updated'));
+      }
+      
+      // Refresh data from server to ensure we have the latest saved values
+      // Small delay to ensure backend has processed the save
+      setTimeout(async () => {
+        await fetchHomePageData();
+      }, 500);
+      
+      // Clear success message after 5 seconds
+      setTimeout(() => setSaveState('idle'), 5000);
     } catch (error: any) {
       console.error('Failed to save home content', error);
       setSaveState('error');
-      alert(error.response?.data?.message || 'Failed to save home page content');
+      const errorMessage = error.response?.data?.message || 
+                          error.response?.data?.errors?.detail || 
+                          error.message ||
+                          'Failed to save home page content. Please try again.';
+      alert(errorMessage);
     } finally {
       setIsSaving(false);
     }

@@ -6,6 +6,8 @@ const TOKEN_KEY = 'hsr_access_token';
 const REFRESH_TOKEN_KEY = 'hsr_refresh_token';
 const USER_KEY = 'hsr_user';
 const ADMIN_LOGOUT_ALL_KEY = 'hsr_admin_logout_all';
+const SESSION_ID_KEY = 'hsr_session_id';
+const SESSION_LOGGED_OUT_KEY = 'hsr_session_logged_out';
 
 export interface AuthTokens {
   access: string;
@@ -35,6 +37,11 @@ export const setTokens = (tokens: AuthTokens): void => {
   if (typeof window === 'undefined') return;
   localStorage.setItem(TOKEN_KEY, tokens.access);
   localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refresh);
+  // Generate a new session ID when tokens are set (on login)
+  const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  localStorage.setItem(SESSION_ID_KEY, sessionId);
+  // Clear any previous session logged out flag
+  localStorage.removeItem(SESSION_LOGGED_OUT_KEY);
 };
 
 export const clearTokens = (): void => {
@@ -42,6 +49,8 @@ export const clearTokens = (): void => {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);
   localStorage.removeItem(USER_KEY);
+  localStorage.removeItem(SESSION_ID_KEY);
+  localStorage.removeItem(SESSION_LOGGED_OUT_KEY);
 };
 
 // User Management
@@ -119,6 +128,47 @@ export const validateSession = async (): Promise<boolean> => {
   } catch {
     return false;
   }
+};
+
+// Session Management
+export const getSessionId = (): string | null => {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem(SESSION_ID_KEY);
+};
+
+export const markSessionLoggedOut = (): void => {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(SESSION_LOGGED_OUT_KEY, 'true');
+  // Broadcast to other tabs
+  localStorage.setItem(SESSION_LOGGED_OUT_KEY, String(Date.now()));
+};
+
+export const isSessionLoggedOut = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  return localStorage.getItem(SESSION_LOGGED_OUT_KEY) !== null;
+};
+
+export const subscribeToSessionLogout = (callback: () => void) => {
+  if (typeof window === 'undefined') {
+    return () => {};
+  }
+  const handler = (event: StorageEvent) => {
+    if (event.key === SESSION_LOGGED_OUT_KEY && event.newValue) {
+      callback();
+    }
+  };
+  window.addEventListener('storage', handler);
+  // Also listen for same-tab changes using a custom event
+  const customHandler = () => {
+    if (isSessionLoggedOut()) {
+      callback();
+    }
+  };
+  window.addEventListener('session-logged-out', customHandler);
+  return () => {
+    window.removeEventListener('storage', handler);
+    window.removeEventListener('session-logged-out', customHandler);
+  };
 };
 
 // Admin Passcode - get from admin settings
