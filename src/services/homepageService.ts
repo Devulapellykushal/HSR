@@ -78,9 +78,12 @@ export interface CompleteHomePage {
 
 export const homepageService = {
   // Complete Homepage (Optimized)
-  async getCompleteHomePage(): Promise<CompleteHomePage> {
+  async getCompleteHomePage(forceRefresh = false): Promise<CompleteHomePage> {
+    // Add cache-busting parameter when force refresh is requested
+    const params = forceRefresh ? { _t: Date.now() } : {};
     const response = await api.get<{ success: boolean; data: CompleteHomePage; message: string }>(
-      '/homepage/'
+      '/homepage/',
+      { params }
     );
     return response.data.data;
   },

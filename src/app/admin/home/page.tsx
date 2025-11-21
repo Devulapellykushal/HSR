@@ -60,7 +60,8 @@ export default function HomePageEditor() {
   
 
   useEffect(() => {
-    fetchHomePageData();
+    // Force refresh on initial load to ensure we see the current data that users see
+    fetchHomePageData(true);
     // Restore last tab
     try {
       const savedTab = localStorage.getItem('homeEditorActiveTab') as
@@ -82,57 +83,45 @@ export default function HomePageEditor() {
     } catch {}
   }, [activeTab]);
 
-  const fetchHomePageData = async () => {
+  const fetchHomePageData = async (forceRefresh = false) => {
     try {
       setLoading(true);
       setSaveState('idle');
       
-      // Fetch both sections in parallel
-      const [heroResponse, statsResponse] = await Promise.all([
-        homepageService.getHeroSection().catch(err => {
-          console.error('Error fetching hero section:', err);
-          return null;
-        }),
-        homepageService.getStatisticsSection().catch(err => {
-          console.error('Error fetching statistics section:', err);
-          return null;
-        }),
-      ]);
+      // Use the same endpoint that the public homepage uses to ensure we see exactly what users see
+      // Add cache-busting parameter to ensure we get fresh data
+      const completeHomePage = await homepageService.getCompleteHomePage();
       
-      // Set hero data - use actual values from API, preserve null/empty as empty string for display
-      if (heroResponse) {
-        console.log('Hero section data received:', heroResponse);
+      // Extract hero section from complete homepage data
+      if (completeHomePage.hero_section) {
+        console.log('Hero section data received:', completeHomePage.hero_section);
         setHeroData({
-          hero_title: heroResponse.hero_title ?? '',
-          hero_subtitle: heroResponse.hero_subtitle ?? '',
-          hero_background_image: heroResponse.hero_background_image ?? '',
-          hero_cta_button_text: heroResponse.hero_cta_button_text ?? '',
+          hero_title: completeHomePage.hero_section.hero_title ?? '',
+          hero_subtitle: completeHomePage.hero_section.hero_subtitle ?? '',
+          hero_background_image: completeHomePage.hero_section.hero_background_image ?? '',
+          hero_cta_button_text: completeHomePage.hero_section.hero_cta_button_text ?? '',
         });
       } else {
         console.warn('Hero section data not received');
       }
       
-      // Set statistics data - use actual values from API, preserve null/empty as empty string for display
-      if (statsResponse) {
-        console.log('Statistics section data received:', statsResponse);
+      // Extract statistics section from complete homepage data
+      if (completeHomePage.statistics) {
+        console.log('Statistics section data received:', completeHomePage.statistics);
         setStatisticsData({
-          stats_experience_value: statsResponse.stats_experience_value ?? '',
-          stats_experience_label: statsResponse.stats_experience_label ?? '',
-          stats_projects_value: statsResponse.stats_projects_value ?? '',
-          stats_projects_label: statsResponse.stats_projects_label ?? '',
-          stats_families_value: statsResponse.stats_families_value ?? '',
-          stats_families_label: statsResponse.stats_families_label ?? '',
-          stats_sqft_value: statsResponse.stats_sqft_value ?? '',
-          stats_sqft_label: statsResponse.stats_sqft_label ?? '',
+          stats_experience_value: completeHomePage.statistics.stats_experience_value ?? '',
+          stats_experience_label: completeHomePage.statistics.stats_experience_label ?? '',
+          stats_projects_value: completeHomePage.statistics.stats_projects_value ?? '',
+          stats_projects_label: completeHomePage.statistics.stats_projects_label ?? '',
+          stats_families_value: completeHomePage.statistics.stats_families_value ?? '',
+          stats_families_label: completeHomePage.statistics.stats_families_label ?? '',
+          stats_sqft_value: completeHomePage.statistics.stats_sqft_value ?? '',
+          stats_sqft_label: completeHomePage.statistics.stats_sqft_label ?? '',
         });
       } else {
         console.warn('Statistics section data not received');
       }
       
-      // If both failed, show error
-      if (!heroResponse && !statsResponse) {
-        throw new Error('Failed to load home page content');
-      }
     } catch (err: any) {
       console.error('Failed to load home page data:', err);
       setSaveState('error');
@@ -181,9 +170,9 @@ export default function HomePageEditor() {
       }
       
       // Refresh data from server to ensure we have the latest saved values
-      // Small delay to ensure backend has processed the save
+      // Small delay to ensure backend has processed the save, force refresh to bypass cache
       setTimeout(async () => {
-        await fetchHomePageData();
+        await fetchHomePageData(true);
       }, 500);
       
       // Clear success message after 5 seconds

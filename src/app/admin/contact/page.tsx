@@ -19,13 +19,15 @@ export default function ContactSettingsPage() {
   const [errorMessage, setErrorMessage] = useState<string>('');
 
   useEffect(() => {
-    fetchSettings();
+    // Force refresh on initial load to ensure we see the current data that users see
+    fetchSettings(true);
   }, []);
 
-  const fetchSettings = async () => {
+  const fetchSettings = async (forceRefresh = false) => {
     try {
       setLoading(true);
-      const data = await contactSettingsService.getContactSettings();
+      // Use force refresh to ensure we get the latest data that users see
+      const data = await contactSettingsService.getContactSettings(forceRefresh);
       setSettings(data);
     } catch (err: any) {
       console.error('Failed to load contact settings:', err);

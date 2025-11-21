@@ -1,10 +1,10 @@
 'use client';
 
+import { mapAmenitiesToBackend, mapConfigurationsToBackend } from '@/lib/projectMappings';
+import { DEFAULT_PROJECT_IMAGE } from '@/lib/projectsStore';
+import { projectsService } from '@/services/projectsService';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { projectsService } from '@/services/projectsService';
-import { DEFAULT_PROJECT_IMAGE } from '@/lib/projectsStore';
-import { mapConfigurationsToBackend, mapAmenitiesToBackend } from '@/lib/projectMappings';
 
 export default function AddNewProject() {
   const router = useRouter();
@@ -32,7 +32,7 @@ export default function AddNewProject() {
   ];
 
   const configurations = ['1BHK', '2BHK', '3BHK', '4BHK', 'Villa', 'Duplex'];
-  const amenities = [
+  const defaultAmenities = [
     'Swimming Pool',
     "Children's Play Area",
     'Security',
@@ -44,6 +44,10 @@ export default function AddNewProject() {
     'Garden',
     'Community Hall',
   ];
+  
+  // State to manage dynamic amenities list
+  const [amenities, setAmenities] = useState<string[]>(defaultAmenities);
+  const [newAmenity, setNewAmenity] = useState('');
 
   const getIcon = (iconName: string) => {
     const icons: { [key: string]: JSX.Element } = {
@@ -273,7 +277,6 @@ export default function AddNewProject() {
                 className="w-full px-4 py-2 border border-[#ced4da] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E936B] focus:border-transparent bg-white"
                 style={{ color: '#343A40' }}
               >
-                <option value="upcoming">Upcoming</option>
                 <option value="ongoing">Ongoing</option>
                 <option value="completed">Completed</option>
               </select>
@@ -476,6 +479,58 @@ export default function AddNewProject() {
             {/* Amenities */}
             <div>
               <h4 className="text-lg font-semibold mb-4" style={{ color: '#343A40' }}>Amenities</h4>
+              
+              {/* Add New Amenity Input */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-2" style={{ color: '#343A40' }}>
+                  Add New Amenity
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newAmenity}
+                    onChange={(e) => setNewAmenity(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && newAmenity.trim()) {
+                        e.preventDefault();
+                        const trimmedAmenity = newAmenity.trim();
+                        if (!amenities.includes(trimmedAmenity)) {
+                          setAmenities([...amenities, trimmedAmenity]);
+                          setFormData({
+                            ...formData,
+                            amenities: [...formData.amenities, trimmedAmenity],
+                          });
+                        }
+                        setNewAmenity('');
+                      }
+                    }}
+                    placeholder="Enter amenity name and press Enter"
+                    className="flex-1 px-4 py-2 border border-[#ced4da] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E936B] focus:border-transparent"
+                    style={{ color: '#343A40' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (newAmenity.trim()) {
+                        const trimmedAmenity = newAmenity.trim();
+                        if (!amenities.includes(trimmedAmenity)) {
+                          setAmenities([...amenities, trimmedAmenity]);
+                          setFormData({
+                            ...formData,
+                            amenities: [...formData.amenities, trimmedAmenity],
+                          });
+                        }
+                        setNewAmenity('');
+                      }
+                    }}
+                    className="px-4 py-2 bg-[#2E936B] text-white rounded-lg font-semibold text-sm transition-colors hover:bg-[#247556] whitespace-nowrap"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+              
+              {/* Amenities Checkbox List */}
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {amenities.map((amenity) => (
                   <label key={amenity} className="flex items-center gap-3 cursor-pointer">

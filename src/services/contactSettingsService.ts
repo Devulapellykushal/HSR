@@ -38,9 +38,12 @@ export interface ContactSettings {
 }
 
 export const contactSettingsService = {
-  async getContactSettings(): Promise<ContactSettings> {
+  async getContactSettings(forceRefresh = false): Promise<ContactSettings> {
+    // Add cache-busting parameter when force refresh is requested
+    const params = forceRefresh ? { _t: Date.now() } : {};
     const response = await api.get<{ success: boolean; data: ContactSettings; message: string }>(
-      '/contact-settings/'
+      '/contact-settings/',
+      { params }
     );
     return response.data.data;
   },
