@@ -31,16 +31,23 @@ export default function AdminProjectDetailPage() {
         setLoading(true);
         setError(null);
         
-        // Fetch project details, gallery images, and floor plans using backend endpoints
-        const [projectData, galleryData, floorPlansData] = await Promise.all([
-          projectsService.getProjectById(id),
-          projectsService.getGalleryImages(id),
-          projectsService.getFloorPlans(id),
-        ]);
+        // Fetch project details - gallery images and floor plans are already included
+        const projectData = await projectsService.getProjectById(id);
 
         setProject(projectData);
-        setGalleryImages(galleryData);
-        setFloorPlans(floorPlansData);
+        // Use gallery_images and floor_plans from the project response
+        setGalleryImages(
+          projectData.gallery_images?.map((img: any) => ({
+            ...img,
+            image_url: img.image || img.image_url || '',
+          })) || []
+        );
+        setFloorPlans(
+          projectData.floor_plans?.map((plan: any) => ({
+            ...plan,
+            file_url: plan.file_path || plan.file_url || '',
+          })) || []
+        );
       } catch (err: any) {
         console.error('Failed to load project:', err);
         setError(err.response?.data?.message || 'Failed to load project');

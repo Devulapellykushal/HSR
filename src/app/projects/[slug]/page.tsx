@@ -29,16 +29,23 @@ export default function ProjectDetailPage({ params }: ProjectPageProps) {
         setLoading(true);
         const foundProject = projects.find((p) => p.slug === params.slug);
         if (foundProject) {
-          // Fetch full project details, gallery images, and floor plans using backend endpoints
-          const [fullProject, galleryData, floorPlansData] = await Promise.all([
-            projectsService.getProjectById(foundProject.id),
-            projectsService.getGalleryImages(foundProject.id),
-            projectsService.getFloorPlans(foundProject.id),
-          ]);
+          // Fetch full project details - gallery images and floor plans are already included
+          const fullProject = await projectsService.getProjectById(foundProject.id);
           
           setProject(fullProject);
-          setGalleryImages(galleryData);
-          setFloorPlans(floorPlansData);
+          // Use gallery_images and floor_plans from the project response
+          setGalleryImages(
+            fullProject.gallery_images?.map((img: any) => ({
+              ...img,
+              image_url: img.image || img.image_url || '',
+            })) || []
+          );
+          setFloorPlans(
+            fullProject.floor_plans?.map((plan: any) => ({
+              ...plan,
+              file_url: plan.file_path || plan.file_url || '',
+            })) || []
+          );
         } else {
           setProject(null);
           setGalleryImages([]);
