@@ -50,11 +50,11 @@ const isPublicEndpoint = (url: string): boolean => {
   // Public endpoints that don't require authentication
   const publicPaths = [
     '/projects/', // Project list, details, gallery, and floor plans (GET)
-    '/homepage/', // Homepage content
-    '/testimonials/', // Testimonials
+    '/homepage/', // Homepage content (includes /homepage/testimonials/ for public display)
     '/contact/', // Contact settings
     '/ping/', // Health check
   ];
+  // Note: /testimonials/ is ADMIN ONLY - not included in public paths
   
   // Explicit checks for gallery and floor-plans (most common public endpoints)
   if (normalizedUrl.includes('/gallery/') || normalizedUrl.includes('/floor-plans/')) {
