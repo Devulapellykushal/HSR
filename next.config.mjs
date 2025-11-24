@@ -53,6 +53,7 @@ const nextConfig = {
           'images.unsplash.com',
           'readdy.ai',
           'example.com',
+          'res.cloudinary.com',
           apiHostname,
         ],
         // Also use remotePatterns for more control (protocol, port, pathname)
@@ -72,6 +73,12 @@ const nextConfig = {
           {
             protocol: 'https',
             hostname: 'example.com',
+            port: '',
+            pathname: '/**',
+          },
+          {
+            protocol: 'https',
+            hostname: 'res.cloudinary.com',
             port: '',
             pathname: '/**',
           },

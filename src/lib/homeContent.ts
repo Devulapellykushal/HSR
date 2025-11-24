@@ -54,8 +54,7 @@ export const defaultHomeContent: HomeContent = {
   hero: {
     mainTitle: 'Premium Living Spaces in Karimnagar',
     subtitle: 'Discover your dream home with HSR Green Homes - where quality meets comfort.',
-    backgroundImage:
-      'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=2075&auto=format&fit=crop',
+    backgroundImage: '',
     ctaButtonText: 'Explore Projects',
     projectsImage: '',
     aboutImage: '',

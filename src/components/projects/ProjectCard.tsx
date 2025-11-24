@@ -41,13 +41,23 @@ export default function ProjectCard({ project }: ProjectCardProps) {
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow h-full flex flex-col">
       <div className="relative h-48 sm:h-56 md:h-64 w-full bg-gray-200">
-        <Image
-          src={project.image}
-          alt={project.title}
-          fill
-          className="object-cover"
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-        />
+        {project.image && 
+         (project.image.startsWith('http://') || project.image.startsWith('https://')) &&
+         project.image.length > 10 ? (
+          <Image
+            src={project.image}
+            alt={project.title}
+            fill
+            className="object-cover"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gray-200">
+            <svg className="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </div>
+        )}
         <div className="absolute top-3 sm:top-4 left-3 sm:left-4">
           <span
             className={`px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-xs font-semibold text-white ${statusColors[project.status]}`}
@@ -111,12 +121,18 @@ export default function ProjectCard({ project }: ProjectCardProps) {
           </div>
         )}
         <div className="flex gap-2 sm:gap-3 mt-auto">
-          <Link
-            href={`/projects/${project.slug}`}
-            className="flex-1 px-3 sm:px-4 py-2 border-2 border-[#2E936B] text-[#2E936B] rounded-lg font-semibold text-center text-xs sm:text-sm hover:bg-[#2E936B] hover:text-white transition-colors"
-          >
-            View Details
-          </Link>
+          {project.slug ? (
+            <Link
+              href={`/projects/${project.slug}`}
+              className="flex-1 px-3 sm:px-4 py-2 border-2 border-[#2E936B] text-[#2E936B] rounded-lg font-semibold text-center text-xs sm:text-sm hover:bg-[#2E936B] hover:text-white transition-colors"
+            >
+              View Details
+            </Link>
+          ) : (
+            <div className="flex-1 px-3 sm:px-4 py-2 border-2 border-gray-300 text-gray-400 rounded-lg font-semibold text-center text-xs sm:text-sm cursor-not-allowed">
+              View Details
+            </div>
+          )}
           {whatsappLink && (
             <Link
               href={whatsappLink}

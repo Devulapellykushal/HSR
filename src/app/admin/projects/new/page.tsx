@@ -1,7 +1,8 @@
 'use client';
 
+import FileUploader from '@/components/admin/FileUploader';
+import ImagePicker from '@/components/admin/ImagePicker';
 import { mapAmenitiesToBackend, mapConfigurationsToBackend } from '@/lib/projectMappings';
-import { DEFAULT_PROJECT_IMAGE } from '@/lib/projectsStore';
 import { projectsService } from '@/services/projectsService';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -16,8 +17,11 @@ export default function AddNewProject() {
     status: 'ongoing' as 'upcoming' | 'ongoing' | 'completed',
     description: '',
     heroImage: '',
+    heroImageFile: null as File | null,
     galleryImages: [] as string[],
+    galleryImageFiles: [] as File[],
     floorPlans: [] as string[],
+    floorPlanFiles: [] as File[],
     configurations: [] as string[],
     amenities: [] as string[],
     isFeatured: false,
@@ -92,20 +96,21 @@ export default function AddNewProject() {
     let requestCancelled = false;
 
     try {
-      // Create project
+      // Create project (with hero image file if available, otherwise use URL)
       const newProject = await projectsService.createProject({
-      title: formData.title,
-      location: formData.location,
+        title: formData.title,
+        location: formData.location,
         rera_number: formData.reraNumber,
         status: formData.status,
-      description: formData.description,
-        hero_image_url: formData.heroImage || DEFAULT_PROJECT_IMAGE,
+        description: formData.description,
+        hero_image_url: formData.heroImage || '',
+        hero_image_file: formData.heroImageFile || undefined,
         configurations_list: mapConfigurationsToBackend(formData.configurations),
         amenities_list: mapAmenitiesToBackend(formData.amenities),
         is_featured: formData.isFeatured,
       });
 
-      // Add gallery images
+      // Add gallery images (URLs first, then files)
       for (const imageUrl of formData.galleryImages) {
         await projectsService.addGalleryImage(newProject.id, {
           image_url: imageUrl,
@@ -113,14 +118,31 @@ export default function AddNewProject() {
         });
       }
 
-      // Add floor plans
+      // Add gallery image files
+      for (const imageFile of formData.galleryImageFiles) {
+        await projectsService.addGalleryImage(newProject.id, {
+          image_file: imageFile,
+          display_order: formData.galleryImages.length + formData.galleryImageFiles.indexOf(imageFile),
+        });
+      }
+
+      // Add floor plans (URLs first, then files)
       for (const planUrl of formData.floorPlans) {
         await projectsService.addFloorPlan(newProject.id, {
           title: `Floor Plan ${formData.floorPlans.indexOf(planUrl) + 1}`,
           file_url: planUrl,
           display_order: formData.floorPlans.indexOf(planUrl),
         });
-    }
+      }
+
+      // Add floor plan files
+      for (const planFile of formData.floorPlanFiles) {
+        await projectsService.addFloorPlan(newProject.id, {
+          title: `Floor Plan ${formData.floorPlans.length + formData.floorPlanFiles.indexOf(planFile) + 1}`,
+          file: planFile,
+          display_order: formData.floorPlans.length + formData.floorPlanFiles.indexOf(planFile),
+        });
+      }
 
       // Only redirect if request wasn't cancelled
       if (!requestCancelled) {
@@ -311,35 +333,29 @@ export default function AddNewProject() {
               <label className="block text-sm font-medium mb-2" style={{ color: '#343A40' }}>
                 Hero Image
               </label>
-              <div className="border-2 border-dashed border-[#ced4da] rounded-lg p-4 sm:p-8 text-center">
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2" style={{ color: '#343A40' }}>
-                      Image URL
-                    </label>
-                    <input
-                      type="url"
-                      value={formData.heroImage}
-                      onChange={(e) => setFormData({ ...formData, heroImage: e.target.value })}
-                      placeholder="Enter image URL"
-                      className="w-full max-w-md mx-auto px-4 py-2 border border-[#ced4da] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E936B] focus:border-transparent"
-                      style={{ color: '#343A40' }}
-                    />
-                  </div>
-                  {formData.heroImage && (
-                    <div className="relative">
-                      <img src={formData.heroImage} alt="Hero" className="w-full h-64 object-cover rounded-lg" />
-                      <button
-                        onClick={() => setFormData({ ...formData, heroImage: '' })}
-                        className="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center"
-                      >
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                        </svg>
-                      </button>
-                    </div>
-                  )}
-                </div>
+              <div className="space-y-3">
+                <FileUploader
+                  label="Upload Image File"
+                  fileType="image"
+                  accept="image/jpeg,image/jpg,image/png,image/webp"
+                  onFileSelect={(file: File) => {
+                    setFormData({ ...formData, heroImageFile: file, heroImage: '' });
+                  }}
+                />
+                <div className="text-sm text-gray-500 text-center">OR</div>
+                <ImagePicker
+                  label=""
+                  value={formData.heroImage}
+                  onChange={(url) => {
+                    setFormData({ ...formData, heroImage: url, heroImageFile: null });
+                  }}
+                  onClear={() => {
+                    setFormData({ ...formData, heroImage: '', heroImageFile: null });
+                  }}
+                  placeholder="Enter image URL or select from uploaded images"
+                  showPreview={true}
+                  previewClassName="h-64"
+                />
               </div>
             </div>
 
@@ -348,32 +364,41 @@ export default function AddNewProject() {
               <label className="block text-sm font-medium mb-2" style={{ color: '#343A40' }}>
                 Gallery Images
               </label>
-              <div className="border-2 border-dashed border-[#ced4da] rounded-lg p-4 sm:p-8 text-center">
-                <svg className="w-12 h-12 mx-auto mb-3 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
-                </svg>
-                <p className="text-sm mb-3" style={{ color: '#6c757d' }}>Upload gallery images</p>
-                <input
-                  type="url"
-                  placeholder="Enter image URL and press Enter"
-                  className="w-full max-w-md mx-auto px-4 py-2 border border-[#ced4da] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E936B] focus:border-transparent"
-                  style={{ color: '#343A40' }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && e.currentTarget.value) {
-                      e.preventDefault();
+              <div className="border-2 border-dashed border-[#ced4da] rounded-lg p-4 sm:p-8">
+                <div className="mb-4 space-y-3">
+                  <FileUploader
+                    label="Upload Image File"
+                    fileType="image"
+                    accept="image/jpeg,image/jpg,image/png,image/webp"
+                    buttonText="Upload Gallery Image"
+                    onFileSelect={(file: File) => {
                       setFormData({
                         ...formData,
-                        galleryImages: [...formData.galleryImages, e.currentTarget.value],
+                        galleryImageFiles: [...formData.galleryImageFiles, file],
                       });
-                      e.currentTarget.value = '';
-                    }
-                  }}
-                />
-                {formData.galleryImages.length > 0 && (
-                  <div className="grid grid-cols-3 gap-4 mt-4">
+                    }}
+                  />
+                  <div className="text-sm text-gray-500 text-center">OR</div>
+                  <ImagePicker
+                    label=""
+                    value=""
+                    onChange={(imageUrl: string) => {
+                      if (imageUrl) {
+                        setFormData({
+                          ...formData,
+                          galleryImages: [...formData.galleryImages, imageUrl],
+                        });
+                      }
+                    }}
+                    placeholder="Select or enter image URL to add to gallery"
+                    showPreview={false}
+                  />
+                </div>
+                {(formData.galleryImages.length > 0 || formData.galleryImageFiles.length > 0) && (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 mt-4">
                     {formData.galleryImages.map((url, index) => (
-                      <div key={index} className="relative">
-                        <img src={url} alt={`Gallery ${index + 1}`} className="w-full h-32 object-cover rounded-lg" />
+                      <div key={`url-${index}`} className="relative">
+                        <img src={url} alt={`Gallery ${index + 1}`} className="w-full h-24 sm:h-32 object-cover rounded-lg" />
                         <button
                           onClick={() => setFormData({
                             ...formData,
@@ -385,6 +410,26 @@ export default function AddNewProject() {
                         </button>
                       </div>
                     ))}
+                    {formData.galleryImageFiles.map((file, index) => {
+                      const previewUrl = URL.createObjectURL(file);
+                      return (
+                        <div key={`file-${index}`} className="relative">
+                          <img src={previewUrl} alt={`Gallery File ${index + 1}`} className="w-full h-24 sm:h-32 object-cover rounded-lg" />
+                          <button
+                            onClick={() => {
+                              URL.revokeObjectURL(previewUrl);
+                              setFormData({
+                                ...formData,
+                                galleryImageFiles: formData.galleryImageFiles.filter((_, i) => i !== index),
+                              });
+                            }}
+                            className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -395,32 +440,45 @@ export default function AddNewProject() {
               <label className="block text-sm font-medium mb-2" style={{ color: '#343A40' }}>
                 Floor Plans
               </label>
-              <div className="border-2 border-dashed border-[#ced4da] rounded-lg p-4 sm:p-8 text-center">
-                <svg className="w-12 h-12 mx-auto mb-3 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
-                </svg>
-                <p className="text-sm mb-3" style={{ color: '#6c757d' }}>Upload floor plan images/PDFs</p>
-                <input
-                  type="url"
-                  placeholder="Enter file URL and press Enter"
-                  className="w-full max-w-md mx-auto px-4 py-2 border border-[#ced4da] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E936B] focus:border-transparent"
-                  style={{ color: '#343A40' }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && e.currentTarget.value) {
-                      e.preventDefault();
+              <div className="border-2 border-dashed border-[#ced4da] rounded-lg p-4 sm:p-8">
+                <div className="mb-4 space-y-3">
+                  <FileUploader
+                    label="Upload File"
+                    fileType="file"
+                    accept="image/jpeg,image/jpg,image/png,image/webp,application/pdf"
+                    buttonText="Upload Floor Plan"
+                    onFileSelect={(file: File) => {
                       setFormData({
                         ...formData,
-                        floorPlans: [...formData.floorPlans, e.currentTarget.value],
+                        floorPlanFiles: [...formData.floorPlanFiles, file],
                       });
-                      e.currentTarget.value = '';
-                    }
-                  }}
-                />
-                {formData.floorPlans.length > 0 && (
-                  <div className="grid grid-cols-3 gap-4 mt-4">
+                    }}
+                  />
+                  <div className="text-sm text-gray-500 text-center">OR</div>
+                  <div>
+                    <input
+                      type="url"
+                      placeholder="Enter file URL and press Enter"
+                      className="w-full px-4 py-2 border border-[#ced4da] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E936B] focus:border-transparent"
+                      style={{ color: '#343A40' }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && e.currentTarget.value) {
+                          e.preventDefault();
+                          setFormData({
+                            ...formData,
+                            floorPlans: [...formData.floorPlans, e.currentTarget.value],
+                          });
+                          e.currentTarget.value = '';
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
+                {(formData.floorPlans.length > 0 || formData.floorPlanFiles.length > 0) && (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 mt-4">
                     {formData.floorPlans.map((url, index) => (
-                      <div key={index} className="relative">
-                        <img src={url} alt={`Floor Plan ${index + 1}`} className="w-full h-32 object-cover rounded-lg" />
+                      <div key={`url-${index}`} className="relative">
+                        <img src={url} alt={`Floor Plan ${index + 1}`} className="w-full h-24 sm:h-32 object-cover rounded-lg" />
                         <button
                           onClick={() => setFormData({
                             ...formData,
@@ -432,6 +490,34 @@ export default function AddNewProject() {
                         </button>
                       </div>
                     ))}
+                    {formData.floorPlanFiles.map((file, index) => {
+                      const previewUrl = file.type.startsWith('image/') ? URL.createObjectURL(file) : null;
+                      return (
+                        <div key={`file-${index}`} className="relative">
+                          {previewUrl ? (
+                            <img src={previewUrl} alt={`Floor Plan File ${index + 1}`} className="w-full h-24 sm:h-32 object-cover rounded-lg" />
+                          ) : (
+                            <div className="w-full h-24 sm:h-32 bg-gray-200 rounded-lg flex items-center justify-center">
+                              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                              </svg>
+                            </div>
+                          )}
+                          <button
+                            onClick={() => {
+                              if (previewUrl) URL.revokeObjectURL(previewUrl);
+                              setFormData({
+                                ...formData,
+                                floorPlanFiles: formData.floorPlanFiles.filter((_, i) => i !== index),
+                              });
+                            }}
+                            className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>

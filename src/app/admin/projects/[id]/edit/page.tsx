@@ -8,7 +8,6 @@ import {
   mapConfigurationsToBackend,
   mapConfigurationsToFrontend
 } from '@/lib/projectMappings';
-import { DEFAULT_PROJECT_IMAGE } from '@/lib/projectsStore';
 import { projectsService } from '@/services/projectsService';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -200,7 +199,7 @@ export default function EditProject() {
         rera_number: formData.reraNumber,
         status: formData.status,
         description: formData.description,
-        hero_image_url: formData.heroImage || DEFAULT_PROJECT_IMAGE,
+        hero_image_url: formData.heroImage || '',
         configurations_list: mapConfigurationsToBackend(formData.configurations),
         amenities_list: mapAmenitiesToBackend(formData.amenities),
         is_featured: formData.isFeatured,
@@ -511,7 +510,15 @@ export default function EditProject() {
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 mt-4">
                     {formData.galleryImages.map((img) => (
                       <div key={img.id} className="relative">
-                        <img src={img.image_url || DEFAULT_PROJECT_IMAGE} alt={img.caption || 'Gallery image'} className="w-full h-24 sm:h-32 object-cover rounded-lg" />
+                        {img.image_url ? (
+                          <img src={img.image_url} alt={img.caption || 'Gallery image'} className="w-full h-24 sm:h-32 object-cover rounded-lg" />
+                        ) : (
+                          <div className="w-full h-24 sm:h-32 bg-gray-200 rounded-lg flex items-center justify-center">
+                            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                          </div>
+                        )}
                         <button
                           onClick={async () => {
                             try {

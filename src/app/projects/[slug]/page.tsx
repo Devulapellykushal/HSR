@@ -1,14 +1,13 @@
 'use client';
 
+import { useContactSettings } from '@/hooks/useContactSettings';
+import { useProjectsAPI } from '@/hooks/useProjectsAPI';
+import { buildWhatsAppLink } from '@/lib/contactStore';
+import { mapAmenitiesToFrontend, mapConfigurationsToFrontend } from '@/lib/projectMappings';
+import { FloorPlan, GalleryImage, Project, projectsService } from '@/services/projectsService';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useState, useMemo } from 'react';
-import { projectsService, Project, GalleryImage, FloorPlan } from '@/services/projectsService';
-import { DEFAULT_PROJECT_IMAGE } from '@/lib/projectsStore';
-import { useContactSettings } from '@/hooks/useContactSettings';
-import { buildWhatsAppLink } from '@/lib/contactStore';
-import { useProjectsAPI } from '@/hooks/useProjectsAPI';
-import { mapConfigurationsToFrontend, mapAmenitiesToFrontend } from '@/lib/projectMappings';
+import { useEffect, useMemo, useState } from 'react';
 
 interface ProjectPageProps {
   params: {
@@ -96,7 +95,7 @@ export default function ProjectDetailPage({ params }: ProjectPageProps) {
     );
   }
 
-  const heroImage = project?.hero_image_url || DEFAULT_PROJECT_IMAGE;
+  const heroImage = project?.hero_image_url || '';
   const configurations = project ? mapConfigurationsToFrontend(project.configurations || []) : [];
   const amenities = project ? mapAmenitiesToFrontend(project.amenities || []) : [];
 
@@ -168,13 +167,21 @@ export default function ProjectDetailPage({ params }: ProjectPageProps) {
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                       {galleryImages.map((img) => (
                         <div key={img.id} className="relative aspect-square rounded-lg overflow-hidden border border-gray-200">
-                          <Image
-                            src={img.image_url || DEFAULT_PROJECT_IMAGE}
-                            alt={img.caption || project.title}
-                            fill
-                            className="object-cover"
-                            sizes="(max-width: 640px) 50vw, 33vw"
-                          />
+                          {img.image_url ? (
+                            <Image
+                              src={img.image_url}
+                              alt={img.caption || project.title}
+                              fill
+                              className="object-cover"
+                              sizes="(max-width: 640px) 50vw, 33vw"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                              </svg>
+                            </div>
+                          )}
                           {img.caption && (
                             <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs p-2">
                               {img.caption}

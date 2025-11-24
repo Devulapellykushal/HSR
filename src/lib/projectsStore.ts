@@ -4,8 +4,6 @@ import { slugify } from './utils';
 
 export const PROJECTS_STORAGE_KEY = 'adminProjects';
 export const PROJECTS_EVENT = 'hsr-projects-updated';
-export const DEFAULT_PROJECT_IMAGE =
-  'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2070&auto=format&fit=crop';
 
 export type ProjectStatus = 'Ongoing' | 'Completed';
 
@@ -31,44 +29,7 @@ const normalizeStatus = (status?: string): ProjectStatus => {
   return status.toLowerCase() === 'completed' ? 'Completed' : 'Ongoing';
 };
 
-const defaultProjects: ProjectRecord[] = [
-  {
-    id: 1,
-    title: 'Green Valley Phase 2',
-    location: 'Karimnagar, Telangana',
-    reraNumber: 'P02400004567',
-    status: 'Ongoing',
-    heroImage: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800',
-    configurations: ['2 BHK', '3 BHK'],
-    price: 'Price on Request',
-    isFeatured: true,
-    slug: 'green-valley-phase-2',
-  },
-  {
-    id: 2,
-    title: 'Emerald Heights',
-    location: 'Karimnagar, Telangana',
-    reraNumber: 'P02400004568',
-    status: 'Ongoing',
-    heroImage: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800',
-    configurations: ['1 BHK', '2 BHK', '3 BHK'],
-    price: 'Price on Request',
-    isFeatured: false,
-    slug: 'emerald-heights',
-  },
-  {
-    id: 3,
-    title: 'Garden View Apartments',
-    location: 'Karimnagar, Telangana',
-    reraNumber: 'P02400004569',
-    status: 'Completed',
-    heroImage: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800',
-    configurations: ['2 BHK', '3 BHK', '4 BHK'],
-    price: 'Price on Request',
-    isFeatured: true,
-    slug: 'garden-view-apartments',
-  },
-];
+const defaultProjects: ProjectRecord[] = [];
 
 const coerceProject = (project: any, fallback?: ProjectRecord): ProjectRecord => {
   const title = project?.title ?? fallback?.title ?? 'HSR Project';
@@ -83,7 +44,7 @@ const coerceProject = (project: any, fallback?: ProjectRecord): ProjectRecord =>
       project?.heroImage ||
       project?.image ||
       fallback?.heroImage ||
-      DEFAULT_PROJECT_IMAGE,
+      '',
     description: project?.description ?? fallback?.description ?? '',
     configurations: project?.configurations ?? fallback?.configurations ?? [],
     galleryImages: project?.galleryImages ?? fallback?.galleryImages ?? [],

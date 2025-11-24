@@ -14,22 +14,24 @@ export default function Hero() {
       ? buildWhatsAppLink(contact.whatsapp.number)
       : '';
 
-  const defaultImage = 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=2075&auto=format&fit=crop';
-  
   const heroContent = data?.hero_section || {
     hero_title: 'Premium Living Spaces in Karimnagar',
     hero_subtitle: 'Discover your dream home with HSR Green Homes - where quality meets comfort.',
-    hero_background_image: defaultImage,
+    hero_background_image: '',
     hero_cta_button_text: 'Explore Projects',
   };
 
-  const backgroundImage = heroContent.hero_background_image || defaultImage;
+  // Validate image URL - ensure it's a complete, valid URL
+  const backgroundImage = heroContent.hero_background_image?.trim();
+  const isValidImageUrl = backgroundImage && 
+    (backgroundImage.startsWith('http://') || backgroundImage.startsWith('https://')) &&
+    backgroundImage.length > 10; // Basic validation for complete URL
 
   return (
     <section className="relative min-h-[85vh] md:min-h-[90vh] flex items-center justify-center overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
-        {backgroundImage && (
+        {isValidImageUrl && (
         <Image
             src={backgroundImage}
           alt="HSR Green Homes Karimnagar"

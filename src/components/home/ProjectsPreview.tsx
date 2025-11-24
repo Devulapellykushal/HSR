@@ -1,10 +1,9 @@
 'use client';
 
+import { useHomepage } from '@/hooks/useHomepage';
+import Link from 'next/link';
 import SectionHeader from '../common/SectionHeader';
 import ProjectCard from '../projects/ProjectCard';
-import Link from 'next/link';
-import { useHomepage } from '@/hooks/useHomepage';
-import { DEFAULT_PROJECT_IMAGE } from '@/lib/projectsStore';
 
 export default function ProjectsPreview() {
   const { data } = useHomepage();
@@ -32,7 +31,7 @@ export default function ProjectsPreview() {
                   title: project.title,
                   location: project.location,
                       status: 'ongoing' as 'ongoing' | 'completed',
-                      image: project.hero_image_url || DEFAULT_PROJECT_IMAGE,
+                      image: project.hero_image_url || '',
                   slug: project.slug,
                       reraId: '',
                       configurations: [],

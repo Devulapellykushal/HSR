@@ -2,7 +2,6 @@
 
 import { useHomepage } from '@/hooks/useHomepage';
 import { mapConfigurationsToFrontend } from '@/lib/projectMappings';
-import { DEFAULT_PROJECT_IMAGE } from '@/lib/projectsStore';
 import SectionHeader from '../common/SectionHeader';
 import ProjectCard from '../projects/ProjectCard';
 
@@ -27,7 +26,7 @@ export default function CompletedProjects() {
                   title: project.title,
                   location: project.location,
                   status: 'completed',
-                  image: project.hero_image_url || DEFAULT_PROJECT_IMAGE,
+                  image: project.hero_image_url || '',
                   slug: project.slug,
                   reraId: project.rera_number,
                   configurations: mapConfigurationsToFrontend(project.configurations || []),

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import LayoutWrapper from "@/components/common/LayoutWrapper";
 import { ErrorBoundary } from "@/components/common/ErrorBoundary";
+import LoadingScreen from "@/components/common/LoadingScreen";
 
 export const metadata: Metadata = {
   title: "HSR Green Homes - Premium Living in Karimnagar",
@@ -22,6 +23,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="flex flex-col min-h-screen antialiased">
+        <LoadingScreen />
         <ErrorBoundary>
           <LayoutWrapper>{children}</LayoutWrapper>
         </ErrorBoundary>

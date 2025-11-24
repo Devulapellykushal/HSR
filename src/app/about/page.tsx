@@ -6,11 +6,9 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { pageHeroImagesService } from '@/services/pageHeroImagesService';
 
-const DEFAULT_HERO_BG = 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=2075&auto=format&fit=crop';
-
 export default function AboutPage() {
-  const [heroBg, setHeroBg] = useState<string>(DEFAULT_HERO_BG);
-  const [ourStoryImage, setOurStoryImage] = useState<string>('https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?q=80&w=2070&auto=format&fit=crop');
+  const [heroBg, setHeroBg] = useState<string>('');
+  const [ourStoryImage, setOurStoryImage] = useState<string>('');
   
   useEffect(() => {
     const fetchHeroImage = async () => {
@@ -24,7 +22,6 @@ export default function AboutPage() {
         }
       } catch (error) {
         console.error('Failed to load about hero image:', error);
-        // Keep default image on error
       }
     };
     fetchHeroImage();
@@ -34,14 +31,16 @@ export default function AboutPage() {
       {/* Hero Section */}
       <section className="relative min-h-[50vh] sm:min-h-[60vh] md:min-h-[70vh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0">
-          <Image
-            src={heroBg || DEFAULT_HERO_BG}
-            alt="About HSR Green Homes"
-            fill
-            className="object-cover"
-            priority
-            sizes="100vw"
-          />
+          {heroBg && (
+            <Image
+              src={heroBg}
+              alt="About HSR Green Homes"
+              fill
+              className="object-cover"
+              priority
+              sizes="100vw"
+            />
+          )}
           <div className="absolute inset-0 bg-black/60"></div>
         </div>
 
@@ -85,15 +84,17 @@ export default function AboutPage() {
                 </p>
               </div>
             </div>
-            <div className="relative h-64 sm:h-80 md:h-96 w-full rounded-lg overflow-hidden shadow-lg">
-              <Image
-                src={ourStoryImage}
-                alt="HSR Green Homes Building"
-                fill
-                className="object-cover"
-                sizes="(max-width: 1024px) 100vw, 50vw"
-              />
-            </div>
+            {ourStoryImage && (
+              <div className="relative h-64 sm:h-80 md:h-96 w-full rounded-lg overflow-hidden shadow-lg">
+                <Image
+                  src={ourStoryImage}
+                  alt="HSR Green Homes Building"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                />
+              </div>
+            )}
           </div>
         </div>
       </section>

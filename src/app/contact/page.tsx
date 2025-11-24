@@ -43,8 +43,7 @@ export default function ContactPage() {
   const { projects } = useProjectsAPI();
   const contact = useContactSettings();
   
-  const DEFAULT_HERO_BG = 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=2075&auto=format&fit=crop';
-  const [heroBg, setHeroBg] = useState<string>(DEFAULT_HERO_BG);
+  const [heroBg, setHeroBg] = useState<string>('');
 
   // Save form data to localStorage on change (debounced)
   useEffect(() => {
@@ -68,7 +67,6 @@ export default function ContactPage() {
         }
       } catch (error) {
         console.error('Failed to load contact hero image:', error);
-        // Keep default image on error
       }
     };
     fetchHeroImage();
@@ -386,14 +384,16 @@ ${formData.message}`;
       {/* Hero Section */}
       <section className="relative min-h-[50vh] sm:min-h-[60vh] md:min-h-[70vh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0">
-          <Image
-            src={heroBg || DEFAULT_HERO_BG}
-            alt="Get in Touch"
-            fill
-            className="object-cover"
-            priority
-            sizes="100vw"
-          />
+          {heroBg && (
+            <Image
+              src={heroBg}
+              alt="Get in Touch"
+              fill
+              className="object-cover"
+              priority
+              sizes="100vw"
+            />
+          )}
           <div className="absolute inset-0 bg-black/60"></div>
         </div>
 

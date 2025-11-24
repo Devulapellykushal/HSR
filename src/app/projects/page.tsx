@@ -1,22 +1,19 @@
 'use client';
 
-import { useMemo, useState, useEffect } from 'react';
-import Image from 'next/image';
 import ProjectCard from '@/components/projects/ProjectCard';
-import Link from 'next/link';
-import { useProjectsAPI } from '@/hooks/useProjectsAPI';
-import { DEFAULT_PROJECT_IMAGE } from '@/lib/projectsStore';
 import { useContactSettings } from '@/hooks/useContactSettings';
+import { useProjectsAPI } from '@/hooks/useProjectsAPI';
 import { buildWhatsAppLink } from '@/lib/contactStore';
 import { pageHeroImagesService } from '@/services/pageHeroImagesService';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useEffect, useMemo, useState } from 'react';
 
 type FilterType = 'all' | 'ongoing' | 'completed';
 
-const DEFAULT_HERO_BG = 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=2075&auto=format&fit=crop';
-
 export default function ProjectsPage() {
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
-  const [heroBg, setHeroBg] = useState<string>(DEFAULT_HERO_BG);
+  const [heroBg, setHeroBg] = useState<string>('');
   const { projects, loading } = useProjectsAPI();
   const contact = useContactSettings();
 
@@ -29,7 +26,6 @@ export default function ProjectsPage() {
         }
       } catch (error) {
         console.error('Failed to load projects hero image:', error);
-        // Keep default image on error
       }
     };
     fetchHeroImage();
@@ -44,7 +40,7 @@ export default function ProjectsPage() {
           title: project.title,
           location: project.location,
           status: project.status === 'completed' ? 'completed' as const : 'ongoing' as const,
-          image: project.hero_image_url || DEFAULT_PROJECT_IMAGE,
+          image: project.hero_image_url || '',
           slug: project.slug,
           reraId: project.rera_number,
           configurations: project.configurations || [],
