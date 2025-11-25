@@ -1,21 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { usePersistedState } from '@/hooks/usePersistedState';
+import { buildWhatsAppLink } from '@/lib/contactStore';
+import { contactSettingsService } from '@/services/contactSettingsService';
+import { Lead, leadsService, LeadStatistics } from '@/services/leadsService';
+import { useEffect, useState } from 'react';
 import { FaWhatsapp } from 'react-icons/fa';
 import {
   FiCheckCircle,
   FiDownload,
-  FiLayers,
   FiMail,
   FiPhone,
-  FiUsers,
+  FiUsers
 } from 'react-icons/fi';
 import { HiOutlineUserAdd } from 'react-icons/hi';
 import { TbTargetArrow } from 'react-icons/tb';
-import { leadsService, Lead, LeadStatistics } from '@/services/leadsService';
-import { buildWhatsAppLink } from '@/lib/contactStore';
-import { contactSettingsService } from '@/services/contactSettingsService';
-import { usePersistedState } from '@/hooks/usePersistedState';
 
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);

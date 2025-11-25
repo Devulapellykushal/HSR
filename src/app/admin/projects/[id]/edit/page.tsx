@@ -83,8 +83,35 @@ export default function EditProject() {
       try {
         setLoading(true);
         const project = await projectsService.getProjectById(id);
-        const galleryImages = await projectsService.getGalleryImages(id);
-        const floorPlans = await projectsService.getFloorPlans(id);
+        
+        // Fetch gallery images and floor plans separately with error handling
+        // If they fail, we'll just use empty arrays instead of failing the entire load
+        let galleryImages: Array<{ id: number; image_url: string; caption?: string }> = [];
+        let floorPlans: Array<{ id: number; title: string; file_url: string }> = [];
+        
+        try {
+          const fetchedGalleryImages = await projectsService.getGalleryImages(id);
+          galleryImages = fetchedGalleryImages.map(img => ({ 
+            id: img.id, 
+            image_url: img.image_url || '', 
+            caption: img.caption 
+          }));
+        } catch (galleryError: any) {
+          console.warn('Failed to load gallery images:', galleryError);
+          // Continue with empty array - gallery images are optional
+        }
+        
+        try {
+          const fetchedFloorPlans = await projectsService.getFloorPlans(id);
+          floorPlans = fetchedFloorPlans.map(plan => ({ 
+            id: plan.id, 
+            title: plan.title, 
+            file_url: plan.file_url || '' 
+          }));
+        } catch (floorPlanError: any) {
+          console.warn('Failed to load floor plans:', floorPlanError);
+          // Continue with empty array - floor plans are optional
+        }
         
         const projectAmenities = mapAmenitiesToFrontend(project.amenities || []);
         
@@ -104,8 +131,8 @@ export default function EditProject() {
           status: project.status,
           description: project.description || '',
           heroImage: project.hero_image || project.hero_image_url || '',
-          galleryImages: galleryImages.map(img => ({ id: img.id, image_url: img.image_url || '', caption: img.caption })),
-          floorPlans: floorPlans.map(plan => ({ id: plan.id, title: plan.title, file_url: plan.file_url || '' })),
+          galleryImages: galleryImages,
+          floorPlans: floorPlans,
           configurations: mapConfigurationsToFrontend(project.configurations || []),
           amenities: projectAmenities,
           isFeatured: project.is_featured || false,

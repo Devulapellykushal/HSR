@@ -1,8 +1,8 @@
 'use client';
 
-import Link from 'next/link';
 import { useContactSettings } from '@/hooks/useContactSettings';
 import { buildWhatsAppLink, sanitizePhoneNumber } from '@/lib/contactStore';
+import Link from 'next/link';
 
 export default function CTASection() {
   const contact = useContactSettings();

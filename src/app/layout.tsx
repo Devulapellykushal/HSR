@@ -1,8 +1,8 @@
+import { ErrorBoundary } from "@/components/common/ErrorBoundary";
+import LayoutWrapper from "@/components/common/LayoutWrapper";
+import LoadingScreen from "@/components/common/LoadingScreen";
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import LayoutWrapper from "@/components/common/LayoutWrapper";
-import { ErrorBoundary } from "@/components/common/ErrorBoundary";
-import LoadingScreen from "@/components/common/LoadingScreen";
 
 export const metadata: Metadata = {
   title: "HSR Green Homes - Premium Living in Karimnagar",
