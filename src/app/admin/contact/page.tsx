@@ -1,9 +1,9 @@
 'use client';
 
-import { contactSettingsService, ContactSettings } from '@/services/contactSettingsService';
 import { invalidateContactSettingsCache } from '@/hooks/useContactSettings';
+import { ContactSettings, contactSettingsService } from '@/services/contactSettingsService';
 import { useEffect, useState } from 'react';
-import { FiMail, FiMapPin, FiPhone, FiSend, FiShare2, FiAlertCircle } from 'react-icons/fi';
+import { FiAlertCircle, FiCheckCircle, FiInfo, FiMail, FiMapPin, FiPhone, FiSend, FiShare2 } from 'react-icons/fi';
 
 interface FieldErrors {
   [key: string]: string[];
@@ -502,18 +502,84 @@ export default function ContactSettingsPage() {
               <textarea
                 rows={3}
                 value={settings.google_maps_embed_code || ''}
-                onChange={(e) => updateField('google_maps_embed_code', e.target.value)}
+                onChange={(e) => {
+                  let value = e.target.value;
+                  // Extract src URL if full iframe code is pasted (handles single/double quotes, spaces, etc.)
+                  const iframeMatch = value.match(/src\s*=\s*["']([^"']+)["']/i);
+                  if (iframeMatch && iframeMatch[1]) {
+                    value = iframeMatch[1].trim();
+                  }
+                  updateField('google_maps_embed_code', value);
+                }}
                 className={`w-full min-w-0 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E936B] focus:border-transparent bg-gray-50 resize-y ${
                   hasFieldError('google_maps_embed_code') ? 'border-red-300 focus:ring-red-500' : 'border-[#ced4da]'
                 }`}
                 style={{ color: '#343A40' }}
-                placeholder="Paste your Google Maps embed code or URL here"
+                placeholder="Paste Google Maps embed URL or full iframe code (we'll extract the URL automatically)"
               />
               {getFieldError('google_maps_embed_code') && (
                 <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
                   <FiAlertCircle className="w-4 h-4 flex-shrink-0" />
                   {getFieldError('google_maps_embed_code')}
                 </p>
+              )}
+              
+              {/* Warning for short URLs */}
+              {settings.google_maps_embed_code && 
+               (settings.google_maps_embed_code.includes('maps.app.goo.gl') || 
+                settings.google_maps_embed_code.includes('goo.gl/maps')) && (
+                <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <div className="flex items-start gap-2">
+                    <FiAlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-yellow-800 mb-1">
+                        ⚠️ Short URLs cannot be embedded
+                      </p>
+                      <p className="text-xs text-yellow-700 mb-2">
+                        The URL you entered is a short link. Please use the embed URL instead.
+                      </p>
+                      <div className="text-xs text-yellow-700 space-y-1">
+                        <p className="font-medium">How to get the embed URL:</p>
+                        <ol className="list-decimal list-inside space-y-1 ml-2">
+                          <li>Open Google Maps and find your location</li>
+                          <li>Click the menu (☰) → <strong>"Share or embed map"</strong></li>
+                          <li>Click <strong>"Embed a map"</strong> tab</li>
+                          <li>Copy the <strong>iframe src URL</strong> (starts with <code className="bg-yellow-100 px-1 rounded text-xs">https://www.google.com/maps/embed?pb=...</code>)</li>
+                          <li>Paste that URL here (or paste the full iframe code - we'll extract the URL automatically)</li>
+                        </ol>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Success indicator for valid embed URL */}
+              {settings.google_maps_embed_code && 
+               !settings.google_maps_embed_code.includes('maps.app.goo.gl') && 
+               !settings.google_maps_embed_code.includes('goo.gl/maps') &&
+               settings.google_maps_embed_code.includes('google.com/maps/embed') && (
+                <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded-lg">
+                  <p className="text-xs text-green-700 flex items-center gap-1">
+                    <FiCheckCircle className="w-4 h-4" />
+                    Valid embed URL detected - Map will display correctly
+                  </p>
+                </div>
+              )}
+              
+              {/* Info for non-embed URLs */}
+              {settings.google_maps_embed_code && 
+               !settings.google_maps_embed_code.includes('maps.app.goo.gl') && 
+               !settings.google_maps_embed_code.includes('goo.gl/maps') &&
+               !settings.google_maps_embed_code.includes('google.com/maps/embed') &&
+               (settings.google_maps_embed_code.startsWith('http://') || settings.google_maps_embed_code.startsWith('https://')) && (
+                <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-start gap-2">
+                    <FiInfo className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
+                    <p className="text-xs text-blue-700">
+                      <strong>Tip:</strong> Make sure you're using the embed URL (starts with <code className="bg-blue-100 px-1 rounded">https://www.google.com/maps/embed</code>), not the regular Google Maps link.
+                    </p>
+                  </div>
+                </div>
               )}
             </div>
           </div>

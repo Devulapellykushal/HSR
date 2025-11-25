@@ -377,7 +377,48 @@ ${formData.message}`;
   const primaryDigits = sanitizePhoneNumber(contact.phones.primaryPhone);
   const callLink = primaryDigits ? `tel:+${primaryDigits}` : '';
   const infoEmailLink = contact.email.infoEmail ? `mailto:${contact.email.infoEmail}` : '';
-  const mapEmbedSrc = contact.address.googleEmbedCode;
+  
+  // Validate and process Google Maps embed code
+  const getMapEmbedSrc = (embedCode: string | undefined): string | null => {
+    if (!embedCode || !embedCode.trim()) return null;
+    
+    let code = embedCode.trim();
+    
+    // Extract src URL if full iframe code is pasted (handles single/double quotes, spaces, etc.)
+    const iframeMatch = code.match(/src\s*=\s*["']([^"']+)["']/i);
+    if (iframeMatch && iframeMatch[1]) {
+      code = iframeMatch[1].trim();
+    }
+    
+    // Check if it's a Google Maps short URL (cannot be embedded)
+    if (code.includes('maps.app.goo.gl') || code.includes('goo.gl/maps')) {
+      return null; // Short URLs cannot be embedded
+    }
+    
+    // Check if it's already a proper embed URL
+    if (code.includes('google.com/maps/embed')) {
+      return code;
+    }
+    
+    // If it's a regular Google Maps URL, try to extract coordinates
+    const coordMatch = code.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+    if (coordMatch) {
+      const [, lat, lng] = coordMatch;
+      // Create a basic embed URL from coordinates
+      return `https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3000!2d${lng}!3d${lat}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2z${lat}!5e0!3m2!1sen!2sin!4v${Date.now()}`;
+    }
+    
+    // If it looks like a URL but not embed, return null
+    if (code.startsWith('http://') || code.startsWith('https://')) {
+      return null;
+    }
+    
+    return code; // Return as-is if it might be valid embed code
+  };
+
+  const mapEmbedSrc = getMapEmbedSrc(contact.address.googleEmbedCode);
+  const isShortUrl = contact.address.googleEmbedCode?.includes('goo.gl') || 
+                     contact.address.googleEmbedCode?.includes('maps.app.goo.gl');
 
   return (
     <>
@@ -663,17 +704,51 @@ ${formData.message}`;
                 and view our project models.
               </p>
               <div className="mb-6">
-                <div className="relative w-full h-64 sm:h-80 md:h-96 rounded-lg overflow-hidden shadow-lg">
-                  <iframe
-                    src={mapEmbedSrc}
-                    width="100%"
-                    height="100%"
-                    style={{ border: 0 }}
-                    allowFullScreen
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                    className="absolute inset-0"
-                  />
+                <div className="relative w-full h-64 sm:h-80 md:h-96 rounded-lg overflow-hidden shadow-lg bg-gray-200">
+                  {mapEmbedSrc ? (
+                    <iframe
+                      src={mapEmbedSrc}
+                      width="100%"
+                      height="100%"
+                      style={{ border: 0 }}
+                      allowFullScreen
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
+                      className="absolute inset-0"
+                      title="Office Location Map"
+                      onError={() => {
+                        console.warn('Google Maps iframe failed to load. This may be blocked by an ad blocker.');
+                      }}
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-200 p-4">
+                      <svg className="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      <p className="text-sm font-medium text-gray-700 text-center mb-2">Map unavailable</p>
+                      <p className="text-xs text-gray-500 text-center max-w-xs mb-4">
+                        {isShortUrl 
+                          ? 'Please use the embed URL from Google Maps (not the short URL)'
+                          : contact.address.googleEmbedCode
+                          ? 'Invalid embed code or blocked by browser extensions'
+                          : 'No map embed code configured'}
+                      </p>
+                      {addressLine && (
+                        <a
+                          href={directionsLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-[#2E936B] hover:bg-[#247556] text-white rounded-lg font-semibold text-sm transition-colors"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                          </svg>
+                          Open in Google Maps
+                        </a>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="bg-white rounded-lg shadow-md p-6">
