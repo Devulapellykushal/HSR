@@ -14,12 +14,12 @@ export default function Hero() {
       ? buildWhatsAppLink(contact.whatsapp.number)
       : '';
 
-  const heroContent = data?.hero_section || {
-    hero_title: 'Premium Living Spaces in Karimnagar',
-    hero_subtitle: 'Discover your dream home with HSR Green Homes - where quality meets comfort.',
-    hero_background_image: '',
-    hero_cta_button_text: 'Explore Projects',
-  };
+  // Don't show hero section if data is not loaded yet
+  if (loading || !data?.hero_section) {
+    return null;
+  }
+
+  const heroContent = data.hero_section;
 
   // Validate image URL - ensure it's a complete, valid URL
   const backgroundImage = heroContent.hero_background_image?.trim();
@@ -58,7 +58,7 @@ export default function Hero() {
             href="/projects"
             className="w-full sm:w-auto px-5 sm:px-6 md:px-7 py-2.5 sm:py-3 rounded-lg bg-[#4CAF7D] hover:bg-[#3d8f6a] text-white font-semibold text-sm sm:text-base transition-colors shadow-lg text-center"
           >
-            {heroContent.hero_cta_button_text || 'View Projects'}
+            {heroContent.hero_cta_button_text}
           </Link>
           {whatsappLink && (
             <Link

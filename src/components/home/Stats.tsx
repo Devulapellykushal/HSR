@@ -43,18 +43,14 @@ const statDefinitions: StatDefinition[] = [
 ];
 
 export default function Stats() {
-  const { data } = useHomepage();
+  const { data, loading } = useHomepage();
 
-  const statsContent = data?.statistics || {
-    stats_experience_value: '15+',
-    stats_experience_label: 'Years of Excellence',
-    stats_projects_value: '50+',
-    stats_projects_label: 'Projects Completed',
-    stats_families_value: '2000+',
-    stats_families_label: 'Happy Families',
-    stats_sqft_value: '10L+',
-    stats_sqft_label: 'Sq.Ft Delivered',
-  };
+  // Don't show stats section if data is not loaded yet
+  if (loading || !data?.statistics) {
+    return null;
+  }
+
+  const statsContent = data.statistics;
 
   return (
     <section className="py-10 sm:py-12 md:py-16 bg-white">
