@@ -120,6 +120,7 @@ export default function FileUploader({
 
       {previewUrl && (
         <div className="mt-2">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={previewUrl}
             alt="Preview"

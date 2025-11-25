@@ -205,6 +205,8 @@ export default function LoadingScreen() {
         clearTimeout(maxWaitTimeout);
       }
     };
+    // homepageLoading and homepageData are handled in separate effect (lines 36-47)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mounted, isHomePage]);
 
   if (!mounted || !isLoading) return null;

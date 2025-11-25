@@ -136,6 +136,7 @@ export default function ImagePicker({
       {/* Preview */}
       {showPreview && value && (
         <div className={`relative border-2 border-gray-200 rounded-lg overflow-hidden ${previewClassName}`}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={value}
             alt="Preview"
@@ -200,6 +201,7 @@ export default function ImagePicker({
               </div>
               {previewUrl && (
                 <div className="mt-2">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={previewUrl} alt="Preview" className="max-h-32 object-contain rounded" />
                 </div>
               )}
@@ -240,6 +242,7 @@ export default function ImagePicker({
                       onClick={() => image.image_url && handleSelectImage(image.image_url)}
                     >
                       <div className="aspect-square bg-gray-100">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={image.image_url || 'https://via.placeholder.com/300'}
                           alt={image.title || 'Image'}

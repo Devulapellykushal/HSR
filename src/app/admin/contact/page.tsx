@@ -542,10 +542,10 @@ export default function ContactSettingsPage() {
                         <p className="font-medium">How to get the embed URL:</p>
                         <ol className="list-decimal list-inside space-y-1 ml-2">
                           <li>Open Google Maps and find your location</li>
-                          <li>Click the menu (☰) → <strong>"Share or embed map"</strong></li>
-                          <li>Click <strong>"Embed a map"</strong> tab</li>
+                          <li>Click the menu (☰) → <strong>&quot;Share or embed map&quot;</strong></li>
+                          <li>Click <strong>&quot;Embed a map&quot;</strong> tab</li>
                           <li>Copy the <strong>iframe src URL</strong> (starts with <code className="bg-yellow-100 px-1 rounded text-xs">https://www.google.com/maps/embed?pb=...</code>)</li>
-                          <li>Paste that URL here (or paste the full iframe code - we'll extract the URL automatically)</li>
+                          <li>Paste that URL here (or paste the full iframe code - we&apos;ll extract the URL automatically)</li>
                         </ol>
                       </div>
                     </div>
@@ -576,7 +576,7 @@ export default function ContactSettingsPage() {
                   <div className="flex items-start gap-2">
                     <FiInfo className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
                     <p className="text-xs text-blue-700">
-                      <strong>Tip:</strong> Make sure you're using the embed URL (starts with <code className="bg-blue-100 px-1 rounded">https://www.google.com/maps/embed</code>), not the regular Google Maps link.
+                      <strong>Tip:</strong> Make sure you&apos;re using the embed URL (starts with <code className="bg-blue-100 px-1 rounded">https://www.google.com/maps/embed</code>), not the regular Google Maps link.
                     </p>
                   </div>
                 </div>

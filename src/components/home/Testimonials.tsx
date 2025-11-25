@@ -25,8 +25,9 @@ export default function Testimonials() {
                   testimonial.name,
                 )}&background=E8F5EF&color=2E936B`;
               return (
-                <div key={testimonial.id} className="bg-white p-5 sm:p-6 rounded-lg shadow-md">
-                  <div className="flex items-center gap-3 sm:gap-4 mb-4">
+                  <div key={testimonial.id} className="bg-white p-5 sm:p-6 rounded-lg shadow-md">
+                    <div className="flex items-center gap-3 sm:gap-4 mb-4">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={avatarSrc}
                       alt={testimonial.name}
