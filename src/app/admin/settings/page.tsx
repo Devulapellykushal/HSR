@@ -1,24 +1,24 @@
 'use client';
 
+import { broadcastAdminLogoutAll, clearAdminAuthentication, getRefreshToken, setUser } from '@/lib/auth';
 import { authService, SessionInfo } from '@/services/authService';
+import { ApiInfo } from '@/services/healthService';
 import { settingsService, SystemSettings } from '@/services/settingsService';
-import { healthService, ApiInfo } from '@/services/healthService';
-import { broadcastAdminLogoutAll, clearAdminAuthentication, getRefreshToken, getUser, setUser } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import {
-  FiAlertTriangle,
-  FiCheck,
-  FiCheckCircle,
-  FiExternalLink,
-  FiLock,
-  FiLogOut,
-  FiMapPin,
-  FiMonitor,
-  FiPower,
-  FiSettings,
-  FiShield,
-  FiUser,
+    FiAlertTriangle,
+    FiCheck,
+    FiCheckCircle,
+    FiExternalLink,
+    FiLock,
+    FiLogOut,
+    FiMapPin,
+    FiMonitor,
+    FiPower,
+    FiSettings,
+    FiShield,
+    FiUser,
 } from 'react-icons/fi';
 import { RiTimer2Line } from 'react-icons/ri';
 
@@ -186,7 +186,20 @@ export default function Settings() {
     setSaving(true);
     setSaveState('idle');
     try {
-      await settingsService.updateSystemSettings(systemSettings);
+      // Only send editable fields (session_timeout is the only active field)
+      // Commented out fields (site_name, site_url, maintenance_mode, auto_backup, email_notifications) 
+      // are not sent to prevent accidental updates
+      await settingsService.updateSystemSettings({
+        session_timeout: systemSettings.session_timeout,
+      });
+      
+      // Dispatch event to notify AdminLayout to refresh session timeout
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('system-settings-updated', {
+          detail: { session_timeout: systemSettings.session_timeout }
+        }));
+      }
+      
       setSaveState('success');
       setTimeout(() => setSaveState('idle'), 3000);
     } catch (err: any) {
@@ -360,10 +373,10 @@ export default function Settings() {
               System Settings
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
-              {[
+              {/* Commented out: site_name and site_url - Not used in UI, reserved for future use */}
+              {/* {[
                 { key: 'site_name', label: 'Site Name', type: 'text' },
                 { key: 'site_url', label: 'Site URL', type: 'url' },
-                { key: 'session_timeout', label: 'Session Timeout (minutes)', type: 'number' },
               ].map((f) => (
                 <div key={f.key}>
                 <label className="block text-sm font-medium mb-2 break-words" style={{ color: '#343A40' }}>
@@ -380,9 +393,28 @@ export default function Settings() {
                   disabled={saving}
                 />
               </div>
-              ))}
+              ))} */}
+              
+              {/* Session Timeout - Active setting */}
+              <div>
+                <label className="block text-sm font-medium mb-2 break-words" style={{ color: '#343A40' }}>
+                  Session Timeout (minutes)
+                </label>
+                <input
+                  type="number"
+                  value={systemSettings.session_timeout}
+                  onChange={(e) => setSystemSettings({ 
+                    ...systemSettings, 
+                    session_timeout: parseInt(e.target.value) || 30 
+                  })}
+                  className="w-full min-w-0 px-4 py-2 border border-[#ced4da] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E936B] focus:border-transparent"
+                  disabled={saving}
+                />
+              </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
+            
+            {/* Commented out: maintenance_mode, auto_backup, email_notifications - Not actively used, reserved for future implementation */}
+            {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
               {[
                 { key: 'maintenance_mode', label: 'Maintenance Mode', hint: 'Enable to show maintenance page to visitors' },
                 { key: 'auto_backup', label: 'Auto Backup', hint: 'Automatically backup data daily' },
@@ -411,7 +443,7 @@ export default function Settings() {
                 </div>
               </label>
               ))}
-            </div>
+            </div> */}
             <button
               className="w-full sm:w-auto px-6 py-2 bg-[#2E936B] text-white rounded-lg font-semibold text-sm transition-colors hover:bg-[#247556] disabled:opacity-60 disabled:cursor-not-allowed"
               onClick={handleUpdateSystemSettings}

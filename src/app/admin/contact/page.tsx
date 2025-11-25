@@ -260,7 +260,8 @@ export default function ContactSettingsPage() {
                   </p>
                 )}
               </div>
-              <div>
+              {/* Commented out: whatsapp_auto_reply - Not actively used (no WhatsApp bot integration), reserved for future use */}
+              {/* <div>
                 <label className="block text-sm font-medium mb-2" style={{ color: '#343A40' }}>
                   Auto Reply Message
                   <span className="text-red-500 ml-1">*</span>
@@ -281,7 +282,7 @@ export default function ContactSettingsPage() {
                     {getFieldError('whatsapp_auto_reply')}
                   </p>
                 )}
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
@@ -377,7 +378,8 @@ export default function ContactSettingsPage() {
               })}
             </div>
 
-            <div className="border border-gray-200 rounded-lg p-4 sm:p-6 bg-gray-50">
+            {/* Commented out: Email Auto Reply Settings - Not actively used (no email sending logic checks these), reserved for future implementation */}
+            {/* <div className="border border-gray-200 rounded-lg p-4 sm:p-6 bg-gray-50">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 sm:mb-6">
                 <h4 className="text-base sm:text-lg font-semibold break-words" style={{ color: '#343A40' }}>
                   Auto Reply Settings
@@ -443,7 +445,7 @@ export default function ContactSettingsPage() {
                   )}
                 </div>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
       )}

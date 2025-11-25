@@ -35,9 +35,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const isForgotRoute = pathname === '/admin/forgot';
   const isChangePasscodeRoute = pathname === '/admin/change-passcode';
   const isPublicAdminRoute = isLoginRoute || isForgotRoute || isChangePasscodeRoute;
-  const SESSION_MINUTES = 30;
+  // Get session timeout from backend settings, fallback to 30 minutes
+  const [sessionTimeoutMinutes, setSessionTimeoutMinutes] = useState<number>(30);
   const WARNING_SECONDS = 60;
-  const [secondsLeft, setSecondsLeft] = useState<number>(SESSION_MINUTES * 60);
+  const [secondsLeft, setSecondsLeft] = useState<number>(sessionTimeoutMinutes * 60);
 
   useEffect(() => {
     if (isPublicAdminRoute) {
@@ -166,6 +167,41 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     };
   }, [isAuthorized, isPublicAdminRoute, router]);
 
+  // Fetch session timeout from backend settings
+  useEffect(() => {
+    if (isPublicAdminRoute) return;
+    
+    const fetchSessionTimeout = async () => {
+      try {
+        const { settingsService } = await import('@/services/settingsService');
+        const systemSettings = await settingsService.getSystemSettings().catch(() => null);
+        if (systemSettings?.session_timeout) {
+          setSessionTimeoutMinutes(systemSettings.session_timeout);
+          setSecondsLeft(systemSettings.session_timeout * 60);
+        }
+      } catch (error) {
+        console.warn('Failed to fetch session timeout, using default 30 minutes:', error);
+        // Keep default 30 minutes
+      }
+    };
+    
+    fetchSessionTimeout();
+    
+    // Listen for system settings updates (when session_timeout is changed in settings page)
+    const handleSettingsUpdate = (event: CustomEvent) => {
+      if (event.detail?.session_timeout) {
+        setSessionTimeoutMinutes(event.detail.session_timeout);
+        setSecondsLeft(event.detail.session_timeout * 60);
+      }
+    };
+    
+    window.addEventListener('system-settings-updated', handleSettingsUpdate as EventListener);
+    
+    return () => {
+      window.removeEventListener('system-settings-updated', handleSettingsUpdate as EventListener);
+    };
+  }, [isPublicAdminRoute]);
+
   // Idle session timeout with warning
   useEffect(() => {
     if (!isAuthorized || isPublicAdminRoute) return;
@@ -173,7 +209,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     let lastAction = Date.now();
     const reset = () => {
       lastAction = Date.now();
-      setSecondsLeft(SESSION_MINUTES * 60);
+      setSecondsLeft(sessionTimeoutMinutes * 60);
     };
     const activity = () => reset();
     window.addEventListener('mousemove', activity);
@@ -181,7 +217,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     window.addEventListener('click', activity);
     interval = setInterval(() => {
       const elapsed = Math.floor((Date.now() - lastAction) / 1000);
-      const left = SESSION_MINUTES * 60 - elapsed;
+      const left = sessionTimeoutMinutes * 60 - elapsed;
       setSecondsLeft(left);
       if (left <= 0) {
         clearAdminAuthentication();
@@ -195,7 +231,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       window.removeEventListener('click', activity);
       if (interval) clearInterval(interval);
     };
-  }, [isAuthorized, isPublicAdminRoute, router]);
+  }, [isAuthorized, isPublicAdminRoute, sessionTimeoutMinutes, router]);
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: FiGrid, path: '/admin/dashboard' },
