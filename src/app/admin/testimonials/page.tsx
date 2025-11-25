@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { FiEdit2, FiPlus, FiTrash2, FiX } from 'react-icons/fi';
 import { testimonialsService, Testimonial } from '@/services/testimonialsService';
 import { useProjectsAPI } from '@/hooks/useProjectsAPI';
+import ImagePicker from '@/components/admin/ImagePicker';
 
 export default function TestimonialsManagement() {
   const [showAddForm, setShowAddForm] = useState(false);
@@ -245,39 +246,20 @@ export default function TestimonialsManagement() {
               />
             </div>
 
-            {/* Customer Photo URL */}
+            {/* Customer Photo */}
             <div>
               <label className="block text-sm font-medium mb-2" style={{ color: '#343A40' }}>
                 Customer Photo
               </label>
-              <div className="space-y-2">
-                <input
-                  type="url"
-                  value={formData.customer_photo}
-                  onChange={(e) => setFormData({ ...formData, customer_photo: e.target.value })}
-                  placeholder="Enter photo URL (optional)"
-                  className="w-full px-4 py-2 border border-[#ced4da] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E936B] focus:border-transparent"
-                  style={{ color: '#343A40' }}
-                  disabled={isSubmitting}
-                />
-                {formData.customer_photo && (
-                  <div className="mt-2 flex items-center gap-3">
-                    <img
-                      src={formData.customer_photo}
-                      alt="Preview"
-                      className="w-16 h-16 rounded-full object-cover border border-[#2E936B]"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ ...formData, customer_photo: '' })}
-                      className="text-sm text-red-600 hover:underline"
-                      disabled={isSubmitting}
-                    >
-                      Remove
-                    </button>
-                  </div>
-                )}
-              </div>
+              <ImagePicker
+                label=""
+                value={formData.customer_photo}
+                onChange={(url) => setFormData({ ...formData, customer_photo: url })}
+                onClear={() => setFormData({ ...formData, customer_photo: '' })}
+                placeholder="Enter photo URL or select from uploaded images"
+                showPreview={true}
+                previewClassName="w-32 h-32 rounded-full border-2 border-[#2E936B] overflow-hidden"
+              />
             </div>
 
             {/* Display Order */}

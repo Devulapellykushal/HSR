@@ -665,50 +665,33 @@ export default function EditProject() {
             <div>
               <h4 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4" style={{ color: '#343A40' }}>Amenities</h4>
               
-              {/* Add New Amenity Input */}
+              {/* Add New Amenity Input - Coming Soon */}
               <div className="mb-4">
                 <label className="block text-sm font-medium mb-2" style={{ color: '#343A40' }}>
                   Add New Amenity
                 </label>
-                <div className="flex gap-2">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
+                  <svg className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-blue-900 mb-1">This feature is coming soon!</p>
+                    <p className="text-xs text-blue-700">Custom amenities will be available in a future update. For now, please select from the predefined amenities below.</p>
+                  </div>
+                </div>
+                <div className="flex gap-2 mt-3 opacity-50 pointer-events-none">
                   <input
                     type="text"
-                    value={newAmenity}
-                    onChange={(e) => setNewAmenity(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && newAmenity.trim()) {
-                        e.preventDefault();
-                        const trimmedAmenity = newAmenity.trim();
-                        if (!amenities.includes(trimmedAmenity)) {
-                          setAmenities([...amenities, trimmedAmenity]);
-                          setFormData({
-                            ...formData,
-                            amenities: [...formData.amenities, trimmedAmenity],
-                          });
-                        }
-                        setNewAmenity('');
-                      }
-                    }}
+                    value=""
                     placeholder="Enter amenity name and press Enter"
-                    className="flex-1 px-4 py-2 border border-[#ced4da] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E936B] focus:border-transparent"
-                    style={{ color: '#343A40' }}
+                    disabled
+                    className="flex-1 px-4 py-2 border border-[#ced4da] rounded-lg bg-gray-100 cursor-not-allowed"
+                    style={{ color: '#6c757d' }}
                   />
                   <button
                     type="button"
-                    onClick={() => {
-                      if (newAmenity.trim()) {
-                        const trimmedAmenity = newAmenity.trim();
-                        if (!amenities.includes(trimmedAmenity)) {
-                          setAmenities([...amenities, trimmedAmenity]);
-                          setFormData({
-                            ...formData,
-                            amenities: [...formData.amenities, trimmedAmenity],
-                          });
-                        }
-                        setNewAmenity('');
-                      }
-                    }}
-                    className="px-4 py-2 bg-[#2E936B] text-white rounded-lg font-semibold text-sm transition-colors hover:bg-[#247556] whitespace-nowrap"
+                    disabled
+                    className="px-4 py-2 bg-gray-400 text-white rounded-lg font-semibold text-sm cursor-not-allowed whitespace-nowrap"
                   >
                     Add
                   </button>
