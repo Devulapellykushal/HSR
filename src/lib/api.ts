@@ -7,7 +7,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: process.env.NODE_ENV === 'production' ? 30000 : 60000, // 30s in prod, 60s in dev
+  timeout: process.env.NODE_ENV === 'production' ? 60000 : 60000, // 60s in prod, 60s in dev
 });
 
 let isRefreshing = false;
@@ -51,7 +51,7 @@ const isPublicEndpoint = (url: string): boolean => {
   const publicPaths = [
     '/projects/', // Project list, details, gallery, and floor plans (GET)
     '/homepage/', // Homepage content (includes /homepage/testimonials/ for public display)
-    '/contact/', // Contact settings
+    '/contact-settings/', // Contact settings
     '/ping/', // Health check
   ];
   // Note: /testimonials/ is ADMIN ONLY - not included in public paths

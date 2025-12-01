@@ -14,7 +14,7 @@ export default function LoadingScreen() {
   const isHomePage = pathname === '/';
   
   // Get homepage loading state if on homepage
-  const { loading: homepageLoading, data: homepageData } = useHomepage();
+  const { loading: homepageLoading, data: homepageData, error: homepageError } = useHomepage();
 
   // Refs to track loading state and timers
   const loadingStateRef = useRef<{
@@ -44,7 +44,16 @@ export default function LoadingScreen() {
         loadingStateRef.current.checkShouldHide();
       }
     }
-  }, [isLoading, isHomePage, homepageLoading, homepageData]);
+    
+    // If there's an error and loading is complete, still allow page to load
+    // (after minimum time) so error state can be shown
+    if (!homepageLoading && homepageError && loadingStateRef.current.minTimeElapsed) {
+      loadingStateRef.current.apiDataLoaded = true;
+      if (loadingStateRef.current.checkShouldHide) {
+        loadingStateRef.current.checkShouldHide();
+      }
+    }
+  }, [isLoading, isHomePage, homepageLoading, homepageData, homepageError]);
 
   useEffect(() => {
     if (!mounted || typeof window === 'undefined' || hasShownRef.current) return;
@@ -177,12 +186,11 @@ export default function LoadingScreen() {
         loadingStateRef.current.apiDataLoaded = true;
         // Will be checked when minTimeElapsed becomes true
       }
+      // Note: If there's an error, it will be handled in the effect above
+      // after minimum time elapses, so the page can show error state
       
-      // Fallback: if API takes too long, show anyway after 5 seconds
-      maxWaitTimeout = setTimeout(() => {
-        loadingStateRef.current.apiDataLoaded = true;
-        checkShouldHide();
-      }, 5000);
+      // No fallback timeout - wait for API to actually load (success or error)
+      // The page should only complete loading when homepage API call completes
     } else {
       // For non-homepage, just wait for minimum time
       hideTimeout = setTimeout(() => {
