@@ -1,7 +1,7 @@
 'use client';
 
 import { useContactSettings } from '@/hooks/useContactSettings';
-import { buildWhatsAppLink, sanitizePhoneNumber } from '@/lib/contactStore';
+import { buildWhatsAppLink, getGoogleMapsUrl, sanitizePhoneNumber } from '@/lib/contactStore';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useMemo } from 'react';
@@ -100,11 +100,9 @@ export default function Footer() {
                 />
               </div>
             </Link>
-            <p className="text-gray-300 mb-2 font-medium text-sm sm:text-base">Premium Living</p>
+            <p className="text-gray-300 mb-2 font-medium text-sm sm:text-base">Exclusive Living</p>
             <p className="text-gray-400 text-xs sm:text-sm leading-relaxed mb-4">
-              Leading real estate developer in Karimnagar, creating premium
-              residential projects that blend modern luxury with traditional
-              values. Your dream home awaits.
+              HSR Green Homes – The Best Builders in Karimnagar. Delivered 15+ landmark projects including villas, apartments, and gated communities. 100% Vasthu compliant, robust construction, and timely delivery.
             </p>
             <div className="flex gap-2 sm:gap-3">
               {socialItems.map((item) => (
@@ -167,14 +165,25 @@ export default function Footer() {
             <ul className="space-y-2 sm:space-y-3">
               <li className="flex items-start gap-2 sm:gap-3">
                 <svg
-                      className="w-4 h-4 sm:w-5 sm:h-5 text-[#2E936B] mt-1 flex-shrink-0"
+                  className="w-4 h-4 sm:w-5 sm:h-5 text-[#2E936B] mt-1 flex-shrink-0"
                   fill="currentColor"
                   viewBox="0 0 24 24"
                 >
                   <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
                 </svg>
                 <span className="text-gray-400 text-xs sm:text-sm">
-                  {addressLine}
+                  {contact.address.googleEmbedCode || addressLine ? (
+                    <a
+                      href={getGoogleMapsUrl(contact.address.googleEmbedCode, addressLine)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-white transition-colors hover:underline"
+                    >
+                      {addressLine}
+                    </a>
+                  ) : (
+                    addressLine
+                  )}
                 </span>
               </li>
               {contact.phones.primaryPhone && (
@@ -232,7 +241,7 @@ export default function Footer() {
             </div>
             <div className="flex flex-col md:flex-row items-center gap-3 sm:gap-4 text-center md:text-left w-full md:w-auto">
               <p className="text-xs sm:text-sm">
-                RERA Registration: RERA/TG/2024/HSR001 | Valid till: Dec 2029
+
               </p>
               <div className="flex gap-3 sm:gap-4">
                 <Link

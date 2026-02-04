@@ -63,6 +63,7 @@ export default function ProjectsManagement() {
         image: project.hero_image_url,
         slug: project.slug,
         isDefault: false, // No default projects when using API
+        is_featured: project.is_featured,
       })),
     [rawProjects],
   );
@@ -148,7 +149,7 @@ export default function ProjectsManagement() {
         action,
         ...(action === 'change_status' ? { status: newStatus } : {}),
       });
-      
+
       setSelectedProjects(new Set());
       setShowBulkActions(false);
       setShowStatusChange(false);
@@ -183,11 +184,11 @@ export default function ProjectsManagement() {
   };
 
   // Filter projects based on selected status
-  const filteredProjects = statusFilter === 'all'
-    ? projects
-    : projects.filter(project =>
-        project.primaryStatus.toLowerCase() === statusFilter
-      );
+  const filteredProjects = useMemo(() => {
+    if (statusFilter === 'all') return projects;
+    if (statusFilter === 'featured') return projects.filter(p => p.is_featured);
+    return projects.filter(project => project.primaryStatus.toLowerCase() === statusFilter);
+  }, [statusFilter, projects]);
 
   const statusColors: { [key: string]: { bg: string; text: string } } = {
     Featured: { bg: '#FFC107', text: '#000000' },
@@ -195,7 +196,7 @@ export default function ProjectsManagement() {
     Completed: { bg: '#2E936B', text: '#FFFFFF' },
   };
 
-  const filters = ['All', 'Ongoing', 'Completed'];
+  const filters = ['All', 'Ongoing', 'Completed', 'Featured'];
 
   return (
     <div>
@@ -224,11 +225,10 @@ export default function ProjectsManagement() {
               <button
                 key={filter}
                 onClick={() => setStatusFilter(filter.toLowerCase())}
-                className={`px-4 py-2 rounded-full font-medium text-sm transition-colors ${
-                  isActive
+                className={`px-4 py-2 rounded-full font-medium text-sm transition-colors ${isActive
                     ? 'bg-[#2E936B] text-white'
                     : 'bg-white border border-[#ced4da] text-[#343A40] hover:bg-gray-50'
-                }`}
+                  }`}
               >
                 {filter}
               </button>
@@ -259,7 +259,7 @@ export default function ProjectsManagement() {
                       : `${selectedProjects.size} of ${filteredProjects.length} selected`}
                   </span>
                 </button>
-                
+
                 {selectedProjects.size > 0 && (
                   <div className="flex flex-wrap items-center gap-2">
                     <div className="relative" ref={bulkActionsRef}>
@@ -271,7 +271,7 @@ export default function ProjectsManagement() {
                         Bulk Actions
                         <FiChevronDown className="w-4 h-4" />
                       </button>
-                      
+
                       {showBulkActions && (
                         <div className="absolute top-full left-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[200px]">
                           <button
@@ -373,100 +373,100 @@ export default function ProjectsManagement() {
           </div>
         ) : (
           filteredProjects.map((project) => (
-          <div key={project.id} className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200 relative">
-            {/* Checkbox - positioned at top-right of card, avoiding image badges */}
-            <div className="absolute top-2 right-2 z-20">
-              <button
-                onClick={() => handleSelectProject(project.id)}
-                className="bg-white rounded-full p-1.5 shadow-lg hover:bg-gray-50 transition-colors border border-gray-200"
-                aria-label={selectedProjects.has(project.id) ? 'Deselect project' : 'Select project'}
-              >
-                {selectedProjects.has(project.id) ? (
-                  <FiCheckSquare className="w-5 h-5 text-[#2E936B]" />
-                ) : (
-                  <FiSquare className="w-5 h-5 text-gray-400" />
-                )}
-              </button>
-            </div>
-            
-            {/* Image with Status Tags */}
-            <div className="relative">
-              <img
-                src={project.image}
-                alt={project.name}
-                className="w-full h-48 object-cover"
-              />
-              <div className="absolute top-2 left-2 flex flex-wrap gap-2 z-10">
-                {project.status.filter(s => s === 'Featured').map((status) => (
+            <div key={project.id} className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200 relative">
+              {/* Checkbox - positioned at top-right of card, avoiding image badges */}
+              <div className="absolute top-2 right-2 z-20">
+                <button
+                  onClick={() => handleSelectProject(project.id)}
+                  className="bg-white rounded-full p-1.5 shadow-lg hover:bg-gray-50 transition-colors border border-gray-200"
+                  aria-label={selectedProjects.has(project.id) ? 'Deselect project' : 'Select project'}
+                >
+                  {selectedProjects.has(project.id) ? (
+                    <FiCheckSquare className="w-5 h-5 text-[#2E936B]" />
+                  ) : (
+                    <FiSquare className="w-5 h-5 text-gray-400" />
+                  )}
+                </button>
+              </div>
+
+              {/* Image with Status Tags */}
+              <div className="relative">
+                <img
+                  src={project.image}
+                  alt={project.name}
+                  className="w-full h-48 object-cover"
+                />
+                <div className="absolute top-2 left-2 flex flex-wrap gap-2 z-10">
+                  {project.status.filter(s => s === 'Featured').map((status) => (
+                    <span
+                      key={status}
+                      className="px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1"
+                      style={{
+                        backgroundColor: statusColors[status].bg,
+                        color: statusColors[status].text,
+                      }}
+                    >
+                      <FiStar className="w-3 h-3" />
+                      {status}
+                    </span>
+                  ))}
+                </div>
+                <div className="absolute bottom-2 right-2 z-10">
                   <span
-                    key={status}
-                    className="px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1"
+                    className="px-2 py-1 rounded-full text-xs font-semibold"
                     style={{
-                      backgroundColor: statusColors[status].bg,
-                      color: statusColors[status].text,
+                      backgroundColor: statusColors[project.primaryStatus]?.bg || statusColors.Completed.bg,
+                      color: statusColors[project.primaryStatus]?.text || statusColors.Completed.text,
                     }}
                   >
-                    <FiStar className="w-3 h-3" />
-                    {status}
+                    {project.primaryStatus}
                   </span>
-                ))}
-              </div>
-              <div className="absolute bottom-2 right-2 z-10">
-                <span
-                  className="px-2 py-1 rounded-full text-xs font-semibold"
-                  style={{
-                    backgroundColor: statusColors[project.primaryStatus]?.bg || statusColors.Completed.bg,
-                    color: statusColors[project.primaryStatus]?.text || statusColors.Completed.text,
-                  }}
-                >
-                  {project.primaryStatus}
-                </span>
-              </div>
-            </div>
-
-            {/* Project Info */}
-            <div className="p-4">
-              <h3 className="text-lg font-bold mb-2" style={{ color: '#343A40' }}>
-                {project.name}
-              </h3>
-              <div className="space-y-2 mb-4">
-                <div className="flex items-center gap-2 text-sm" style={{ color: '#6c757d' }}>
-                  <FiMapPin className="w-4 h-4" />
-                  <span>{project.location}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm" style={{ color: '#6c757d' }}>
-                  <FiFileText className="w-4 h-4" />
-                  <span>RERA: {project.rera}</span>
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex items-center gap-2">
-                <Link
-                  href={`/admin/projects/${project.id}/edit`}
-                  className="flex-1 px-4 py-2 bg-[#2E936B] text-white rounded-lg font-medium text-sm transition-colors hover:bg-[#247556] flex items-center justify-center gap-2"
-                >
-                  <FiEdit2 className="w-4 h-4" />
-                  <span>Edit</span>
-                </Link>
-                <button
-                  className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
-                  aria-label="View project details"
-                  onClick={() => handleViewProject(project.id)}
-                >
-                  <FiEye className="w-5 h-5" style={{ color: '#6c757d' }} />
-                </button>
-                <button
-                  className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors disabled:opacity-50"
-                  aria-label="Delete project"
-                  onClick={() => handleDeleteProject(project.id)}
-                  title="Delete project"
-                >
-                  <FiTrash2 className="w-5 h-5" style={{ color: project.isDefault ? '#adb5bd' : '#6c757d' }} />
-                </button>
+              {/* Project Info */}
+              <div className="p-4">
+                <h3 className="text-lg font-bold mb-2" style={{ color: '#343A40' }}>
+                  {project.name}
+                </h3>
+                <div className="space-y-2 mb-4">
+                  <div className="flex items-center gap-2 text-sm" style={{ color: '#6c757d' }}>
+                    <FiMapPin className="w-4 h-4" />
+                    <span>{project.location}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm" style={{ color: '#6c757d' }}>
+                    <FiFileText className="w-4 h-4" />
+                    <span>RERA: {project.rera}</span>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex items-center gap-2">
+                  <Link
+                    href={`/admin/projects/${project.id}/edit`}
+                    className="flex-1 px-4 py-2 bg-[#2E936B] text-white rounded-lg font-medium text-sm transition-colors hover:bg-[#247556] flex items-center justify-center gap-2"
+                  >
+                    <FiEdit2 className="w-4 h-4" />
+                    <span>Edit</span>
+                  </Link>
+                  <button
+                    className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+                    aria-label="View project details"
+                    onClick={() => handleViewProject(project.id)}
+                  >
+                    <FiEye className="w-5 h-5" style={{ color: '#6c757d' }} />
+                  </button>
+                  <button
+                    className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors disabled:opacity-50"
+                    aria-label="Delete project"
+                    onClick={() => handleDeleteProject(project.id)}
+                    title="Delete project"
+                  >
+                    <FiTrash2 className="w-5 h-5" style={{ color: project.isDefault ? '#adb5bd' : '#6c757d' }} />
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
           ))
         )}
       </div>

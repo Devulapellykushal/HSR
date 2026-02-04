@@ -19,11 +19,16 @@ const resetLogoClickCount = (): void => {
   }
 };
 
+import { FiEye, FiEyeOff } from 'react-icons/fi';
+
+// ... (existing imports)
+
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -41,7 +46,7 @@ function LoginForm() {
 
     try {
       const response = await authService.login({ email, password });
-      
+
       // Store tokens and user
       setTokens(response.tokens);
       setUser(response.user);
@@ -51,16 +56,16 @@ function LoginForm() {
 
       // Get returnTo parameter or default to dashboard
       const returnTo = searchParams.get('returnTo') || '/admin/dashboard';
-      
+
       // Redirect immediately - tokens are already stored synchronously
       router.replace(returnTo);
     } catch (err: any) {
       setError(
-        err.response?.data?.message || 
+        err.response?.data?.message ||
         err.response?.data?.errors?.non_field_errors?.[0] ||
         'Invalid email or password. Please try again.'
       );
-    setIsSubmitting(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -85,16 +90,25 @@ function LoginForm() {
         <label className="block text-sm font-medium text-white mb-2">
           Password
         </label>
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full px-4 py-3 rounded-xl bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#2E936B]"
-          placeholder="Enter password"
-          required
-          disabled={isSubmitting}
-          autoComplete="current-password"
-        />
+        <div className="relative">
+          <input
+            type={showPassword ? 'text' : 'password'}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full px-4 py-3 rounded-xl bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#2E936B] pr-10"
+            placeholder="Enter password"
+            required
+            disabled={isSubmitting}
+            autoComplete="current-password"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#2E936B] transition-colors focus:outline-none"
+          >
+            {showPassword ? <FiEye size={20} /> : <FiEyeOff size={20} />}
+          </button>
+        </div>
         <div className="mt-2 text-right">
           <Link
             href="/admin/forgot"
@@ -129,14 +143,14 @@ export default function AdminLoginPage() {
         <div className="text-center mb-8">
           <Link href="/" className="inline-block">
             <div className="w-16 h-16 mx-auto bg-white rounded-full flex items-center justify-center mb-4 overflow-hidden cursor-pointer hover:bg-gray-50 transition-colors">
-            <Image
-              src="/images/logo.png"
+              <Image
+                src="/images/logo.png"
                 alt="HSR Green Homes Logo"
-              width={48}
-              height={48}
-              priority
-            />
-          </div>
+                width={48}
+                height={48}
+                priority
+              />
+            </div>
           </Link>
           <h1 className="text-2xl font-bold text-white">Admin Access</h1>
           <p className="text-white/80 mt-2 text-sm">

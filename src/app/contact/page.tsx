@@ -2,7 +2,7 @@
 
 import { useContactSettings } from '@/hooks/useContactSettings';
 import { useProjectsAPI } from '@/hooks/useProjectsAPI';
-import { buildWhatsAppLink, sanitizePhoneNumber } from '@/lib/contactStore';
+import { buildWhatsAppLink, getGoogleMapsUrl, sanitizePhoneNumber } from '@/lib/contactStore';
 import { leadsService } from '@/services/leadsService';
 import { pageHeroImagesService } from '@/services/pageHeroImagesService';
 import Image from 'next/image';
@@ -16,7 +16,7 @@ export default function ContactPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [submitMessage, setSubmitMessage] = useState('');
-  
+
   // Load form data from localStorage on mount
   const [formData, setFormData] = useState(() => {
     if (typeof window === 'undefined') {
@@ -42,7 +42,7 @@ export default function ContactPage() {
 
   const { projects } = useProjectsAPI();
   const contact = useContactSettings();
-  
+
   const [heroBg, setHeroBg] = useState<string>('');
 
   // Save form data to localStorage on change (debounced)
@@ -54,7 +54,7 @@ export default function ContactPage() {
         console.error('Error saving form data:', error);
       }
     }, 500); // Debounce: save 500ms after last change
-    
+
     return () => clearTimeout(timeoutId);
   }, [formData]);
 
@@ -81,7 +81,7 @@ export default function ContactPage() {
       setMessageLength(value.length);
     }
   };
-  
+
   // Clear saved form data after successful submission
   const clearSavedFormData = () => {
     try {
@@ -110,7 +110,7 @@ export default function ContactPage() {
     }
 
     const status = error.response?.status;
-    
+
     // Server errors (500, 502, 503, etc.)
     if (status >= 500) {
       return 'Our server is temporarily unavailable. Please try again in a few moments. If the problem persists, please contact us directly.';
@@ -193,8 +193,8 @@ export default function ContactPage() {
 
       // Handle non-field errors
       if (errors.non_field_errors) {
-        const nonFieldErrors = Array.isArray(errors.non_field_errors) 
-          ? errors.non_field_errors 
+        const nonFieldErrors = Array.isArray(errors.non_field_errors)
+          ? errors.non_field_errors
           : [errors.non_field_errors];
         friendlyMessages.push(...nonFieldErrors);
       }
@@ -209,8 +209,8 @@ export default function ContactPage() {
       });
 
       if (friendlyMessages.length > 0) {
-        return friendlyMessages.length === 1 
-          ? friendlyMessages[0] 
+        return friendlyMessages.length === 1
+          ? friendlyMessages[0]
           : `Please correct the following:\n\n${friendlyMessages.map((msg, idx) => `${idx + 1}. ${msg}`).join('\n')}`;
       }
     }
@@ -256,7 +256,7 @@ export default function ContactPage() {
     try {
       // Get project ID
       const selectedProject = projects.find((p) => p.slug === formData.project);
-      
+
       // Create lead in database first
       // Remove spaces from phone number before sending (already cleaned above)
       await leadsService.createLead({
@@ -299,7 +299,7 @@ ${formData.message}`;
         const encodedMessage = encodeURIComponent(whatsappMessage);
         const fullLink = `${whatsappLink}?text=${encodedMessage}`;
         window.open(fullLink, '_blank', 'noopener,noreferrer');
-        
+
         setSubmitStatus('success');
         setSubmitMessage('Thank you! Your inquiry has been submitted successfully. Opening WhatsApp...');
       } else {
@@ -315,11 +315,11 @@ ${formData.message}`;
     } catch (error: any) {
       console.error('Failed to submit contact form:', error);
       setSubmitStatus('error');
-      
+
       // Get user-friendly error message
       const errorMessage = getUserFriendlyErrorMessage(error);
       setSubmitMessage(errorMessage);
-      
+
       // Clear error message after appropriate duration (longer for multi-line errors)
       const messageDuration = errorMessage.includes('\n') ? 10000 : 7000;
       setTimeout(() => {
@@ -369,7 +369,7 @@ ${formData.message}`;
   ]
     .filter(Boolean)
     .join(', ');
-  const directionsLink = addressLine ? `https://maps.google.com/?q=${encodeURIComponent(addressLine)}` : '#';
+  const directionsLink = getGoogleMapsUrl(contact.address.googleEmbedCode, addressLine);
   const whatsappLink =
     contact.whatsapp.enabled && contact.whatsapp.number
       ? buildWhatsAppLink(contact.whatsapp.number)
@@ -377,29 +377,29 @@ ${formData.message}`;
   const primaryDigits = sanitizePhoneNumber(contact.phones.primaryPhone);
   const callLink = primaryDigits ? `tel:+${primaryDigits}` : '';
   const infoEmailLink = contact.email.infoEmail ? `mailto:${contact.email.infoEmail}` : '';
-  
+
   // Validate and process Google Maps embed code
   const getMapEmbedSrc = (embedCode: string | undefined): string | null => {
     if (!embedCode || !embedCode.trim()) return null;
-    
+
     let code = embedCode.trim();
-    
+
     // Extract src URL if full iframe code is pasted (handles single/double quotes, spaces, etc.)
     const iframeMatch = code.match(/src\s*=\s*["']([^"']+)["']/i);
     if (iframeMatch && iframeMatch[1]) {
       code = iframeMatch[1].trim();
     }
-    
+
     // Check if it's a Google Maps short URL (cannot be embedded)
     if (code.includes('maps.app.goo.gl') || code.includes('goo.gl/maps')) {
       return null; // Short URLs cannot be embedded
     }
-    
+
     // Check if it's already a proper embed URL
     if (code.includes('google.com/maps/embed')) {
       return code;
     }
-    
+
     // If it's a regular Google Maps URL, try to extract coordinates
     const coordMatch = code.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
     if (coordMatch) {
@@ -407,18 +407,18 @@ ${formData.message}`;
       // Create a basic embed URL from coordinates
       return `https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3000!2d${lng}!3d${lat}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2z${lat}!5e0!3m2!1sen!2sin!4v${Date.now()}`;
     }
-    
+
     // If it looks like a URL but not embed, return null
     if (code.startsWith('http://') || code.startsWith('https://')) {
       return null;
     }
-    
+
     return code; // Return as-is if it might be valid embed code
   };
 
   const mapEmbedSrc = getMapEmbedSrc(contact.address.googleEmbedCode);
-  const isShortUrl = contact.address.googleEmbedCode?.includes('goo.gl') || 
-                     contact.address.googleEmbedCode?.includes('maps.app.goo.gl');
+  const isShortUrl = contact.address.googleEmbedCode?.includes('goo.gl') ||
+    contact.address.googleEmbedCode?.includes('maps.app.goo.gl');
 
   return (
     <>
@@ -443,8 +443,7 @@ ${formData.message}`;
             Get in <span className="text-[#2E936B]">Touch</span>
           </h1>
           <p className="text-sm sm:text-base md:text-lg text-white max-w-2xl mx-auto font-sans leading-relaxed px-2">
-            Ready to find your dream home? Contact our expert team for personalized
-            assistance and detailed project information.
+            Contact us to know more about the projects you are interested in.
           </p>
         </div>
       </section>
@@ -462,14 +461,14 @@ ${formData.message}`;
               </div>
               <h3 className="text-lg font-bold mb-3 text-gray-900">Visit Our Office</h3>
               <p className="text-sm text-gray-600 mb-4 leading-relaxed">{addressLine}</p>
-              <Link
-                href={directionsLink || '#'}
+              <a
+                href={getGoogleMapsUrl(contact.address.googleEmbedCode, addressLine)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-block px-4 py-2 bg-[#2E936B] hover:bg-[#247556] text-white rounded-lg font-semibold text-sm transition-colors"
               >
                 Get Directions
-              </Link>
+              </a>
             </div>
 
             {/* Call Us Card */}
@@ -556,7 +555,7 @@ ${formData.message}`;
                 Fill out the form below and our team will get back to you within 24 hours
                 with detailed information about our projects.
               </p>
-              
+
               {/* Submit Status Messages */}
               {submitStatus === 'success' && (
                 <div className="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
@@ -568,7 +567,7 @@ ${formData.message}`;
                   {submitMessage}
                 </div>
               )}
-              
+
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label
@@ -642,11 +641,13 @@ ${formData.message}`;
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2E936B] focus:border-transparent outline-none transition-colors"
                   >
                     <option value="">Select a project</option>
-                    {projects.map((project) => (
-                      <option key={project.id} value={project.slug}>
-                        {project.title}
-                      </option>
-                    ))}
+                    {projects
+                      .filter(p => !p.status || p.status === 'ongoing')
+                      .map((project) => (
+                        <option key={project.id} value={project.slug}>
+                          {project.title}
+                        </option>
+                      ))}
                   </select>
                 </div>
                 <div>
@@ -728,11 +729,11 @@ ${formData.message}`;
                       </svg>
                       <p className="text-sm font-medium text-gray-700 text-center mb-2">Map unavailable</p>
                       <p className="text-xs text-gray-500 text-center max-w-xs mb-4">
-                        {isShortUrl 
+                        {isShortUrl
                           ? 'Please use the embed URL from Google Maps (not the short URL)'
                           : contact.address.googleEmbedCode
-                          ? 'Invalid embed code or blocked by browser extensions'
-                          : 'No map embed code configured'}
+                            ? 'Invalid embed code or blocked by browser extensions'
+                            : 'No map embed code configured'}
                       </p>
                       {addressLine && (
                         <a

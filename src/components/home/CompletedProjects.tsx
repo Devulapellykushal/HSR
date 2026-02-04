@@ -1,13 +1,12 @@
 'use client';
 
-import { useHomepage } from '@/hooks/useHomepage';
-import { mapConfigurationsToFrontend } from '@/lib/projectMappings';
+import { useProjectsAPI } from '@/hooks/useProjectsAPI';
 import SectionHeader from '../common/SectionHeader';
 import ProjectCard from '../projects/ProjectCard';
 
 export default function CompletedProjects() {
-  const { data } = useHomepage();
-  const completedProjects = data?.completed_projects || [];
+  const { projects } = useProjectsAPI();
+  const completedProjects = projects.filter(p => p.status === 'completed');
 
   return (
     <section className="py-10 sm:py-12 md:py-16 bg-gray-50">
@@ -25,11 +24,11 @@ export default function CompletedProjects() {
                   id: String(project.id),
                   title: project.title,
                   location: project.location,
-                  status: 'completed',
+                  status: project.status as 'completed' | 'ongoing',
                   image: project.hero_image_url || '',
                   slug: project.slug,
                   reraId: project.rera_number,
-                  configurations: mapConfigurationsToFrontend(project.configurations || []),
+                  configurations: project.configurations || [],
                   price: project.price,
                 }}
               />

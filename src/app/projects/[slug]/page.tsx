@@ -2,7 +2,7 @@
 
 import { useContactSettings } from '@/hooks/useContactSettings';
 import { useProjectsAPI } from '@/hooks/useProjectsAPI';
-import { buildWhatsAppLink } from '@/lib/contactStore';
+import { buildWhatsAppLink, getGoogleMapsUrl } from '@/lib/contactStore';
 import { mapAmenitiesToFrontend, mapConfigurationsToFrontend } from '@/lib/projectMappings';
 import { FloorPlan, GalleryImage, Project, projectsService } from '@/services/projectsService';
 import Image from 'next/image';
@@ -22,16 +22,42 @@ export default function ProjectDetailPage({ params }: ProjectPageProps) {
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
   const [floorPlans, setFloorPlans] = useState<FloorPlan[]>([]);
   const [loading, setLoading] = useState(true);
+  const [slug, setSlug] = useState<string>('');
 
   useEffect(() => {
+    // Unwrap params
+    const unwrapParams = async () => {
+      const resolvedParams = await params;
+      setSlug(resolvedParams.slug);
+    };
+    unwrapParams();
+  }, [params]);
+
+  useEffect(() => {
+    if (!slug) return;
+
     const fetchProject = async () => {
       try {
         setLoading(true);
-        const foundProject = projects.find((p) => p.slug === params.slug);
+        let foundProject = projects.find((p) => p.slug === slug);
+
+        // If not found in the initial list (e.g. paginated), try fetching by slug directly
+        if (!foundProject) {
+          try {
+            // @ts-ignore - slug is supported by backend now
+            const response = await projectsService.getProjects({ slug: slug });
+            if (response.results && response.results.length > 0) {
+              foundProject = response.results[0];
+            }
+          } catch (e) {
+            console.warn('Failed to fetch project by slug:', e);
+          }
+        }
+
         if (foundProject) {
           // Fetch full project details - gallery images and floor plans are already included
           const fullProject = await projectsService.getProjectById(foundProject.id);
-          
+
           setProject(fullProject);
           // Use gallery_images and floor_plans from the project response
           setGalleryImages(
@@ -64,7 +90,21 @@ export default function ProjectDetailPage({ params }: ProjectPageProps) {
     if (projects.length > 0) {
       fetchProject();
     }
-  }, [projects, params.slug]);
+  }, [projects, slug]);
+
+  const [lightboxIndex, setLightboxIndex] = useState(-1);
+
+  // Prevent scroll when lightbox is open
+  useEffect(() => {
+    if (lightboxIndex >= 0) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [lightboxIndex]);
 
   const whatsappLink = useMemo(() => {
     if (!project) return null;
@@ -73,6 +113,17 @@ export default function ProjectDetailPage({ params }: ProjectPageProps) {
     const text = `Hi! I'm interested in your project "${project.title}" in ${project.location}. Please share the latest price details and availability.`;
     return `${base}?text=${encodeURIComponent(text)}`;
   }, [contact.whatsapp.number, project]);
+
+  const openLightbox = (index: number) => setLightboxIndex(index);
+  const closeLightbox = () => setLightboxIndex(-1);
+  const nextImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setLightboxIndex((prev) => (prev + 1) % galleryImages.length);
+  };
+  const prevImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setLightboxIndex((prev) => (prev - 1 + galleryImages.length) % galleryImages.length);
+  };
 
   if (loading) {
     return (
@@ -106,8 +157,59 @@ export default function ProjectDetailPage({ params }: ProjectPageProps) {
   const configurations = project ? mapConfigurationsToFrontend(project.configurations || []) : [];
   const amenities = project ? mapAmenitiesToFrontend(project.amenities || []) : [];
 
+
   return (
     <div className="bg-gray-50 min-h-screen">
+      {/* Lightbox Modal */}
+      {lightboxIndex >= 0 && (
+        <div
+          className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4"
+          onClick={closeLightbox}
+        >
+          <button
+            className="absolute top-4 right-4 text-white/70 hover:text-white p-2"
+            onClick={closeLightbox}
+          >
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+
+          <button
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-white/70 hover:text-white p-2 hidden sm:block"
+            onClick={prevImage}
+          >
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+
+          <div className="relative w-full max-w-5xl aspect-video mx-auto">
+            <Image
+              src={galleryImages[lightboxIndex].image_url || ''}
+              alt={galleryImages[lightboxIndex].caption || 'Gallery Image'}
+              fill
+              className="object-contain"
+              quality={100}
+            />
+            {galleryImages[lightboxIndex].caption && (
+              <div className="absolute bottom-4 left-0 right-0 text-center text-white bg-black/50 py-2 rounded">
+                {galleryImages[lightboxIndex].caption}
+              </div>
+            )}
+          </div>
+
+          <button
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-white/70 hover:text-white p-2 hidden sm:block"
+            onClick={nextImage}
+          >
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+      )}
+
       {/* Hero with image */}
       <section className="relative h-[260px] sm:h-[320px] md:h-[380px] lg:h-[420px] overflow-hidden">
         {heroImage && (
@@ -166,22 +268,33 @@ export default function ProjectDetailPage({ params }: ProjectPageProps) {
                     ? project.description
                     : `Discover ${project.title}, a thoughtfully planned residential community in ${project.location}, designed to offer comfortable living with modern amenities.`}
                 </p>
-                
+
                 {/* Gallery Images - from backend API */}
                 <div className="mt-6">
                   <h4 className="text-sm font-semibold mb-3 text-gray-900">Gallery</h4>
                   {galleryImages.length > 0 ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                      {galleryImages.map((img) => (
-                        <div key={img.id} className="relative aspect-square rounded-lg overflow-hidden border border-gray-200">
+                      {galleryImages.map((img, index) => (
+                        <div
+                          key={img.id}
+                          className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 cursor-pointer group"
+                          onClick={() => openLightbox(index)}
+                        >
                           {img.image_url ? (
-                            <Image
-                              src={img.image_url}
-                              alt={img.caption || project.title}
-                              fill
-                              className="object-cover"
-                              sizes="(max-width: 640px) 50vw, 33vw"
-                            />
+                            <>
+                              <Image
+                                src={img.image_url}
+                                alt={img.caption || project.title}
+                                fill
+                                className="object-cover transition-transform group-hover:scale-105"
+                                sizes="(max-width: 640px) 50vw, 33vw"
+                              />
+                              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                                <svg className="w-8 h-8 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                                </svg>
+                              </div>
+                            </>
                           ) : (
                             <div className="w-full h-full flex items-center justify-center bg-gray-100">
                               <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -232,6 +345,8 @@ export default function ProjectDetailPage({ params }: ProjectPageProps) {
                 </div>
               </div>
 
+
+
               {configurations.length > 0 && (
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 sm:p-6">
                   <h3 className="text-base sm:text-lg font-semibold mb-3 text-gray-900">
@@ -280,13 +395,12 @@ export default function ProjectDetailPage({ params }: ProjectPageProps) {
                     <dt className="text-gray-600">Status</dt>
                     <dd>
                       <span
-                        className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${
-                          project.status === 'ongoing'
-                            ? 'bg-orange-100 text-orange-700'
-                            : project.status === 'completed'
+                        className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${project.status === 'ongoing'
+                          ? 'bg-orange-100 text-orange-700'
+                          : project.status === 'completed'
                             ? 'bg-emerald-100 text-emerald-700'
                             : 'bg-blue-100 text-blue-700'
-                        }`}
+                          }`}
                       >
                         {project.status}
                       </span>
@@ -294,7 +408,9 @@ export default function ProjectDetailPage({ params }: ProjectPageProps) {
                   </div>
                   <div className="flex justify-between gap-3">
                     <dt className="text-gray-600">Location</dt>
-                    <dd className="text-right text-gray-900">{project.location}</dd>
+                    <dd className="text-right text-gray-900">
+                      {project.location}
+                    </dd>
                   </div>
                   {project.rera_number && (
                     <div className="flex justify-between gap-3">
@@ -339,11 +455,46 @@ export default function ProjectDetailPage({ params }: ProjectPageProps) {
                   </Link>
                 </div>
               </div>
+
+              {/* Google Maps Sidebar Embed */}
+              {project.google_map_embed_url && (
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-5 overflow-hidden">
+                  <h3 className="text-sm font-semibold mb-3 text-gray-900 flex items-center gap-2">
+                    <svg className="w-4 h-4 text-[#2E936B]" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                    </svg>
+                    Location Map
+                  </h3>
+                  <div className="relative w-full aspect-[4/3] rounded-lg overflow-hidden bg-gray-100 mb-3">
+                    <iframe
+                      src={project.google_map_embed_url}
+                      width="100%"
+                      height="100%"
+                      style={{ border: 0 }}
+                      allowFullScreen
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
+                    ></iframe>
+                  </div>
+                  <a
+                    href={getGoogleMapsUrl(project.google_map_embed_url, project.location + ' Karimnagar')}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-gray-100 text-[#2E936B] font-bold text-base hover:bg-[#2E936B] hover:text-white transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    Get Directions
+                  </a>
+                </div>
+              )}
             </aside>
           </div>
-        </div>
-      </section>
-    </div>
+        </div >
+      </section >
+    </div >
   );
 }
 

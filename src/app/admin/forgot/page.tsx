@@ -5,13 +5,15 @@ import { useRouter } from 'next/navigation';
 import { authService } from '@/services/authService';
 import Image from 'next/image';
 import Link from 'next/link';
-import { FiCheck, FiLock } from 'react-icons/fi';
+import { FiCheck, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -55,34 +57,34 @@ export default function ForgotPasswordPage() {
     } catch (err: any) {
       const errorData = err.response?.data;
       let errorMessage = 'Failed to reset password';
-      
+
       if (errorData?.errors) {
         const errorMessages: string[] = [];
         if (errorData.errors.email) {
-          errorMessages.push(...(Array.isArray(errorData.errors.email) 
-            ? errorData.errors.email 
+          errorMessages.push(...(Array.isArray(errorData.errors.email)
+            ? errorData.errors.email
             : [errorData.errors.email]));
         }
         if (errorData.errors.new_password) {
-          errorMessages.push(...(Array.isArray(errorData.errors.new_password) 
-            ? errorData.errors.new_password 
+          errorMessages.push(...(Array.isArray(errorData.errors.new_password)
+            ? errorData.errors.new_password
             : [errorData.errors.new_password]));
         }
         if (errorData.errors.confirm_password) {
-          errorMessages.push(...(Array.isArray(errorData.errors.confirm_password) 
-            ? errorData.errors.confirm_password 
+          errorMessages.push(...(Array.isArray(errorData.errors.confirm_password)
+            ? errorData.errors.confirm_password
             : [errorData.errors.confirm_password]));
         }
         if (errorData.errors.non_field_errors) {
-          errorMessages.push(...(Array.isArray(errorData.errors.non_field_errors) 
-            ? errorData.errors.non_field_errors 
+          errorMessages.push(...(Array.isArray(errorData.errors.non_field_errors)
+            ? errorData.errors.non_field_errors
             : [errorData.errors.non_field_errors]));
         }
         errorMessage = errorMessages.length > 0 ? errorMessages.join('\n') : errorData.message || errorMessage;
       } else if (errorData?.message) {
         errorMessage = errorData.message;
       }
-      
+
       setError(errorMessage);
     } finally {
       setIsSubmitting(false);
@@ -130,31 +132,49 @@ export default function ForgotPasswordPage() {
             <label className="block text-sm font-medium text-white mb-2">
               New Password
             </label>
-            <input
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#2E936B]"
-              placeholder="Enter new password"
-              required
-              disabled={isSubmitting}
-              autoComplete="new-password"
-            />
+            <div className="relative">
+              <input
+                type={showNewPassword ? 'text' : 'password'}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#2E936B] pr-10"
+                placeholder="Enter new password"
+                required
+                disabled={isSubmitting}
+                autoComplete="new-password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowNewPassword(!showNewPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#2E936B] transition-colors focus:outline-none"
+              >
+                {showNewPassword ? <FiEye size={20} /> : <FiEyeOff size={20} />}
+              </button>
+            </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-white mb-2">
               Confirm New Password
             </label>
-            <input
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#2E936B]"
-              placeholder="Confirm new password"
-              required
-              disabled={isSubmitting}
-              autoComplete="new-password"
-            />
+            <div className="relative">
+              <input
+                type={showConfirmPassword ? 'text' : 'password'}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#2E936B] pr-10"
+                placeholder="Confirm new password"
+                required
+                disabled={isSubmitting}
+                autoComplete="new-password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#2E936B] transition-colors focus:outline-none"
+              >
+                {showConfirmPassword ? <FiEye size={20} /> : <FiEyeOff size={20} />}
+              </button>
+            </div>
           </div>
 
           <div className="bg-blue-500/20 border border-blue-300/30 rounded-xl p-4">

@@ -4,8 +4,9 @@ export interface Project {
   id: number;
   title: string;
   location: string;
-  rera_number: string;
+  rera_number?: string;
   status: 'upcoming' | 'ongoing' | 'completed';
+  google_map_embed_url?: string;
   hero_image_url: string;
   hero_image?: string; // Alternative image field
   description?: string;
@@ -64,6 +65,7 @@ export interface ProjectFilters {
   status?: 'upcoming' | 'ongoing' | 'completed';
   is_featured?: boolean;
   search?: string;
+  slug?: string;
   sort_by?: 'created_at' | 'updated_at' | 'title' | 'status' | 'view_count';
   sort_order?: 'asc' | 'desc';
   page?: number;
@@ -75,8 +77,9 @@ export interface ProjectFilters {
 export interface CreateProjectData {
   title: string;
   location: string;
-  rera_number: string;
+  rera_number?: string;
   status: 'upcoming' | 'ongoing' | 'completed';
+  google_map_embed_url?: string;
   hero_image_url?: string;
   hero_image_file?: File;
   description?: string;
@@ -118,8 +121,13 @@ export const projectsService = {
     const formData = new FormData();
     formData.append('title', data.title);
     formData.append('location', data.location);
-    formData.append('rera_number', data.rera_number);
+    if (data.rera_number) {
+      formData.append('rera_number', data.rera_number);
+    }
     formData.append('status', data.status);
+    if (data.google_map_embed_url) {
+      formData.append('google_map_embed_url', data.google_map_embed_url);
+    }
     if (data.hero_image_file) {
       formData.append('hero_image_file', data.hero_image_file);
     } else if (data.hero_image_url) {

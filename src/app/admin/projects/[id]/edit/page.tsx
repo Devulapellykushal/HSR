@@ -65,6 +65,7 @@ export default function EditProject() {
     reraNumber: '',
     status: 'ongoing' as 'upcoming' | 'ongoing' | 'completed',
     description: '',
+    googleMapEmbedUrl: '',
     heroImage: '',
     galleryImages: [] as Array<{ id: number; image_url: string; caption?: string }>,
     floorPlans: [] as Array<{ id: number; title: string; file_url: string }>,
@@ -83,38 +84,38 @@ export default function EditProject() {
       try {
         setLoading(true);
         const project = await projectsService.getProjectById(id);
-        
+
         // Fetch gallery images and floor plans separately with error handling
         // If they fail, we'll just use empty arrays instead of failing the entire load
         let galleryImages: Array<{ id: number; image_url: string; caption?: string }> = [];
         let floorPlans: Array<{ id: number; title: string; file_url: string }> = [];
-        
+
         try {
           const fetchedGalleryImages = await projectsService.getGalleryImages(id);
-          galleryImages = fetchedGalleryImages.map(img => ({ 
-            id: img.id, 
-            image_url: img.image_url || '', 
-            caption: img.caption 
+          galleryImages = fetchedGalleryImages.map(img => ({
+            id: img.id,
+            image_url: img.image_url || '',
+            caption: img.caption
           }));
         } catch (galleryError: any) {
           console.warn('Failed to load gallery images:', galleryError);
           // Continue with empty array - gallery images are optional
         }
-        
+
         try {
           const fetchedFloorPlans = await projectsService.getFloorPlans(id);
-          floorPlans = fetchedFloorPlans.map(plan => ({ 
-            id: plan.id, 
-            title: plan.title, 
-            file_url: plan.file_url || '' 
+          floorPlans = fetchedFloorPlans.map(plan => ({
+            id: plan.id,
+            title: plan.title,
+            file_url: plan.file_url || ''
           }));
         } catch (floorPlanError: any) {
           console.warn('Failed to load floor plans:', floorPlanError);
           // Continue with empty array - floor plans are optional
         }
-        
+
         const projectAmenities = mapAmenitiesToFrontend(project.amenities || []);
-        
+
         // Merge project amenities with default amenities list
         const allAmenities = [...defaultAmenities];
         projectAmenities.forEach(amenity => {
@@ -123,13 +124,14 @@ export default function EditProject() {
           }
         });
         setAmenities(allAmenities);
-        
+
         setFormData({
           title: project.title || '',
           location: project.location || '',
           reraNumber: project.rera_number || '',
           status: project.status,
           description: project.description || '',
+          googleMapEmbedUrl: project.google_map_embed_url || '',
           heroImage: project.hero_image || project.hero_image_url || '',
           galleryImages: galleryImages,
           floorPlans: floorPlans,
@@ -156,7 +158,7 @@ export default function EditProject() {
     { id: 'settings', label: 'Settings', icon: 'gear' },
   ];
 
-  const configurations = ['1BHK', '2BHK', '3BHK', '4BHK', 'Villa', 'Duplex'];
+  const configurations = ['1BHK', '2BHK', '3BHK', '4BHK', 'Villa', 'Duplex', 'Apartment'];
   const defaultAmenities = [
     'Swimming Pool',
     "Children's Play Area",
@@ -169,7 +171,7 @@ export default function EditProject() {
     'Garden',
     'Community Hall',
   ];
-  
+
   // State to manage dynamic amenities list
   const [amenities, setAmenities] = useState<string[]>(defaultAmenities);
   const [newAmenity, setNewAmenity] = useState('');
@@ -207,8 +209,8 @@ export default function EditProject() {
       return;
     }
 
-    if (!formData.title || !formData.location || !formData.reraNumber) {
-      alert('Please fill in all required fields');
+    if (!formData.title || !formData.location) {
+      alert('Please fill in all required fields (Title and Location)');
       return;
     }
 
@@ -226,6 +228,7 @@ export default function EditProject() {
         rera_number: formData.reraNumber,
         status: formData.status,
         description: formData.description,
+        google_map_embed_url: formData.googleMapEmbedUrl,
         hero_image_url: formData.heroImage || '',
         configurations_list: mapConfigurationsToBackend(formData.configurations),
         amenities_list: mapAmenitiesToBackend(formData.amenities),
@@ -242,9 +245,9 @@ export default function EditProject() {
       }
     } catch (error: any) {
       if (requestCancelled) return;
-      
+
       console.error('Failed to update project', error);
-      
+
       // User-friendly error messages
       let errorMessage = 'Something went wrong while updating the project. Please try again.';
       if (error.response?.status === 401 || error.response?.status === 403) {
@@ -266,7 +269,7 @@ export default function EditProject() {
           .join('\n');
         errorMessage = fieldErrors || errorMessage;
       }
-      
+
       alert(errorMessage);
       setIsSubmitting(false);
     }
@@ -322,11 +325,10 @@ export default function EditProject() {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-2 rounded-t-lg font-medium text-sm flex items-center gap-2 transition-colors ${
-              activeTab === tab.id
-                ? 'bg-[#2E936B] text-white'
-                : 'bg-white text-[#343A40] hover:bg-gray-50'
-            }`}
+            className={`px-4 py-2 rounded-t-lg font-medium text-sm flex items-center gap-2 transition-colors ${activeTab === tab.id
+              ? 'bg-[#2E936B] text-white'
+              : 'bg-white text-[#343A40] hover:bg-gray-50'
+              }`}
             style={{
               color: activeTab === tab.id ? '#FFFFFF' : '#343A40',
             }}
@@ -343,7 +345,7 @@ export default function EditProject() {
       {activeTab === 'basic' && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
           <h3 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6" style={{ color: '#343A40' }}>Basic Information</h3>
-          
+
           <div className="space-y-4 sm:space-y-6">
             {/* Project Title */}
             <div>
@@ -380,17 +382,60 @@ export default function EditProject() {
             {/* RERA Number */}
             <div>
               <label className="block text-sm font-medium mb-2" style={{ color: '#343A40' }}>
-                RERA Number <span className="text-red-500">*</span>
+                RERA Number <span className="text-gray-400 font-normal">(Optional)</span>
               </label>
               <input
                 type="text"
-                required
                 value={formData.reraNumber}
                 onChange={(e) => setFormData({ ...formData, reraNumber: e.target.value })}
                 placeholder="Enter RERA number"
                 className="w-full px-4 py-2 border border-[#ced4da] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E936B] focus:border-transparent"
                 style={{ color: '#343A40' }}
               />
+            </div>
+
+            {/* Google Map Embed URL */}
+            <div>
+              <label className="block text-sm font-medium mb-2" style={{ color: '#343A40' }}>
+                Google Map Embed URL <span className="text-gray-400 font-normal">(Optional)</span>
+              </label>
+              <input
+                type="text"
+                value={formData.googleMapEmbedUrl}
+                onChange={(e) => {
+                  let val = e.target.value;
+                  // Auto-extract src if iframe tag is pasted
+                  if (val.includes('<iframe')) {
+                    const srcMatch = val.match(/src="([^"]+)"/);
+                    if (srcMatch) {
+                      val = srcMatch[1];
+                    }
+                  }
+                  setFormData({ ...formData, googleMapEmbedUrl: val });
+                }}
+                placeholder="Paste the embed code 'src' URL or full iframe code"
+                className="w-full px-4 py-2 border border-[#ced4da] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E936B] focus:border-transparent"
+                style={{ color: '#343A40' }}
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Paste the full iframe embed code from Google Maps, or just the URL.
+              </p>
+
+              {/* Preview */}
+              {formData.googleMapEmbedUrl && (
+                <div className="mt-3 border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
+                  <iframe
+                    src={formData.googleMapEmbedUrl}
+                    width="100%"
+                    height="250"
+                    style={{ border: 0 }}
+                    allowFullScreen
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    title="Map Preview"
+                  />
+                </div>
+              )}
             </div>
 
             {/* Project Status */}
@@ -431,7 +476,7 @@ export default function EditProject() {
       {activeTab === 'media' && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
           <h3 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6" style={{ color: '#343A40' }}>Media</h3>
-          
+
           <div className="space-y-4 sm:space-y-6">
             {/* Hero Image */}
             <div>
@@ -605,6 +650,7 @@ export default function EditProject() {
                     onAdd={async (fileUrl) => {
                       try {
                         const id = parseInt(projectId);
+                        // Default title or prompt? Let's use a default and user can edit it
                         const newPlan = await projectsService.addFloorPlan(id, {
                           title: `Floor Plan ${formData.floorPlans.length + 1}`,
                           file_url: fileUrl,
@@ -621,10 +667,34 @@ export default function EditProject() {
                   />
                 </div>
                 {formData.floorPlans.length > 0 && (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 mt-4">
-                    {formData.floorPlans.map((plan) => (
-                      <div key={plan.id} className="relative">
-                        <img src={plan.file_url} alt={plan.title} className="w-full h-24 sm:h-32 object-cover rounded-lg" />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                    {formData.floorPlans.map((plan, index) => (
+                      <div key={plan.id} className="relative border border-gray-200 rounded-lg p-3 bg-gray-50">
+                        <div className="flex gap-3">
+                          <img src={plan.file_url} alt={plan.title} className="w-20 h-20 object-cover rounded-md bg-white" />
+                          <div className="flex-1 min-w-0">
+                            <label className="block text-xs font-medium text-gray-500 mb-1">Title</label>
+                            <input
+                              type="text"
+                              value={plan.title}
+                              onChange={(e) => {
+                                const newPlans = [...formData.floorPlans];
+                                newPlans[index].title = e.target.value;
+                                setFormData({ ...formData, floorPlans: newPlans });
+                              }}
+                              onBlur={async () => {
+                                try {
+                                  const id = parseInt(projectId);
+                                  await projectsService.updateFloorPlan(id, plan.id, { title: plan.title });
+                                } catch (error) {
+                                  console.error('Failed to update floor plan title', error);
+                                }
+                              }}
+                              className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:border-[#2E936B]"
+                            />
+                            <p className="text-xs text-gray-400 mt-1 truncate">ID: {plan.id}</p>
+                          </div>
+                        </div>
                         <button
                           onClick={async () => {
                             try {
@@ -638,7 +708,7 @@ export default function EditProject() {
                               alert(error.response?.data?.message || 'Failed to delete floor plan');
                             }
                           }}
-                          className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs"
+                          className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs shadow-sm hover:bg-red-600"
                         >
                           ×
                         </button>
@@ -656,7 +726,7 @@ export default function EditProject() {
       {activeTab === 'details' && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
           <h3 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6" style={{ color: '#343A40' }}>Project Details</h3>
-          
+
           <div className="space-y-6 sm:space-y-8">
             {/* Configurations */}
             <div>
@@ -691,40 +761,56 @@ export default function EditProject() {
             {/* Amenities */}
             <div>
               <h4 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4" style={{ color: '#343A40' }}>Amenities</h4>
-              
-              {/* Add New Amenity Input - Coming Soon */}
+
+              {/* Add New Amenity Input */}
               <div className="mb-4">
                 <label className="block text-sm font-medium mb-2" style={{ color: '#343A40' }}>
                   Add New Amenity
                 </label>
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
-                  <svg className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                  </svg>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-blue-900 mb-1">This feature is coming soon!</p>
-                    <p className="text-xs text-blue-700">Custom amenities will be available in a future update. For now, please select from the predefined amenities below.</p>
-                  </div>
-                </div>
-                <div className="flex gap-2 mt-3 opacity-50 pointer-events-none">
+                <div className="flex gap-2">
                   <input
                     type="text"
-                    value=""
+                    value={newAmenity}
+                    onChange={(e) => setNewAmenity(e.target.value)}
                     placeholder="Enter amenity name and press Enter"
-                    disabled
-                    className="flex-1 px-4 py-2 border border-[#ced4da] rounded-lg bg-gray-100 cursor-not-allowed"
-                    style={{ color: '#6c757d' }}
+                    className="flex-1 px-4 py-2 border border-[#ced4da] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E936B] focus:border-transparent"
+                    style={{ color: '#343A40' }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (newAmenity.trim() && !amenities.includes(newAmenity.trim())) {
+                          const trimmed = newAmenity.trim();
+                          setAmenities([...amenities, trimmed]);
+                          setFormData({
+                            ...formData,
+                            amenities: [...formData.amenities, trimmed],
+                          });
+                          setNewAmenity('');
+                        }
+                      }
+                    }}
                   />
                   <button
                     type="button"
-                    disabled
-                    className="px-4 py-2 bg-gray-400 text-white rounded-lg font-semibold text-sm cursor-not-allowed whitespace-nowrap"
+                    onClick={() => {
+                      if (newAmenity.trim() && !amenities.includes(newAmenity.trim())) {
+                        const trimmed = newAmenity.trim();
+                        setAmenities([...amenities, trimmed]);
+                        setFormData({
+                          ...formData,
+                          amenities: [...formData.amenities, trimmed],
+                        });
+                        setNewAmenity('');
+                      }
+                    }}
+                    disabled={!newAmenity.trim()}
+                    className="px-4 py-2 bg-[#2E936B] text-white rounded-lg font-semibold text-sm hover:bg-[#247556] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Add
                   </button>
                 </div>
               </div>
-              
+
               {/* Amenities Checkbox List */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
                 {amenities.map((amenity) => (
@@ -760,7 +846,7 @@ export default function EditProject() {
       {activeTab === 'settings' && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
           <h3 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6" style={{ color: '#343A40' }}>Project Settings</h3>
-          
+
           <div className="space-y-4 sm:space-y-6">
             {/* Featured Project */}
             <div>

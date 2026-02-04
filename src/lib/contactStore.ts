@@ -109,6 +109,57 @@ export const buildWhatsAppLink = (number?: string) => {
   return digits ? `https://wa.me/${digits}` : '';
 };
 
+export const getGoogleMapsUrl = (embedCode?: string, address?: string) => {
+  if (embedCode) {
+    let cleanUrl = embedCode;
+    // Extract src from iframe tag if present
+    const srcMatch = embedCode.match(/src="([^"]+)"/);
+    if (srcMatch) {
+      cleanUrl = srcMatch[1];
+    }
+
+    // 1. Try to extract CID (Computer Identification Number) - best for exact place match
+    // CID often looks like !1s0x...:0x... in the URL
+    // The part after :0x is the CID
+    const cidMatch = cleanUrl.match(/!1s0x[0-9a-fA-F]+:0x([0-9a-fA-F]+)/);
+    if (cidMatch) {
+      // Convert hex CID to decimal for Google Maps CID URL
+      try {
+        const cidDecimal = BigInt(`0x${cidMatch[1]}`).toString();
+        return `https://www.google.com/maps?cid=${cidDecimal}`;
+      } catch (e) {
+        // Fallback if BigInt fails (unlikely)
+      }
+    }
+
+    // 2. Try to extract coordinates from @lat,lng
+    const coordMatch = cleanUrl.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+    if (coordMatch) {
+      const [, lat, lng] = coordMatch;
+      // q= coordinates allows dropping a pin at that exact location
+      return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+    }
+
+    // 3. Try to extract coordinates from pb=!2d...!3d...
+    // Note: !2d is longitude, !3d is latitude in PB strings
+    const pbMatch = cleanUrl.match(/!2d(-?\d+\.\d+)!3d(-?\d+\.\d+)/);
+    if (pbMatch) {
+      const [, lng, lat] = pbMatch;
+      return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+    }
+
+    // 4. If nothing else, use the embed URL directly but change to maps view if possible?
+    // Embed URLs are usually /maps/embed/..., we want /maps/place/... or search
+    // But safely, let's fall back to search query
+  }
+
+  if (address) {
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+  }
+
+  return '';
+};
+
 export const getContactSettings = (): ContactSettings => {
   if (typeof window === 'undefined') {
     return defaultContactSettings;
@@ -134,7 +185,7 @@ export const emitContactUpdate = () => {
 
 export const subscribeToContactSettings = (callback: (settings: ContactSettings) => void) => {
   if (typeof window === 'undefined') {
-    return () => {};
+    return () => { };
   }
   const handler = () => callback(getContactSettings());
   window.addEventListener(CONTACT_EVENT, handler);

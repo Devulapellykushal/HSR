@@ -2,90 +2,33 @@
 const nextConfig = {
   // Production optimizations
   reactStrictMode: true,
-  swcMinify: true,
   compress: true,
-  
+
   // Image optimization configuration
   images: {
     // Helper to safely get API hostname
-    ...(function() {
-      let apiHostname = 'localhost';
-      try {
-        if (process.env.NEXT_PUBLIC_API_BASE_URL) {
-          apiHostname = new URL(process.env.NEXT_PUBLIC_API_BASE_URL).hostname;
-        }
-      } catch (e) {
-        // Invalid URL, use localhost fallback
-      }
-      
-      let apiRemotePatterns = [
-        {
-          protocol: 'http',
-          hostname: 'localhost',
-          port: '8000',
-          pathname: '/**',
-        },
-        {
-          protocol: 'https',
-          hostname: 'localhost',
-          port: '8000',
-          pathname: '/**',
-        },
-      ];
-      
-      try {
-        if (process.env.NEXT_PUBLIC_API_BASE_URL) {
-          const apiUrl = new URL(process.env.NEXT_PUBLIC_API_BASE_URL);
-          apiRemotePatterns = [{
-            protocol: apiUrl.protocol.slice(0, -1),
-            hostname: apiUrl.hostname,
-            port: apiUrl.port || '',
-            pathname: '/**',
-          }];
-        }
-      } catch (e) {
-        // Invalid URL, use localhost fallback
-      }
-      
-      return {
-        // Use domains array for simpler configuration (allows any path on these domains)
-        domains: [
-          'images.unsplash.com',
-          'readdy.ai',
-          'example.com',
-          'res.cloudinary.com',
-          apiHostname,
-        ],
-        // Also use remotePatterns for more control (protocol, port, pathname)
-        remotePatterns: [
-          {
-            protocol: 'https',
-            hostname: 'images.unsplash.com',
-            port: '',
-            pathname: '/**',
-          },
-          {
-            protocol: 'https',
-            hostname: 'readdy.ai',
-            port: '',
-            pathname: '/**',
-          },
-          {
-            protocol: 'https',
-            hostname: 'example.com',
-            port: '',
-            pathname: '/**',
-          },
-          {
-            protocol: 'https',
-            hostname: 'res.cloudinary.com',
-            port: '',
-            pathname: '/**',
-          },
-          ...apiRemotePatterns,
-        ],
-      };
-    })(),
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+      },
+      {
+        protocol: 'http',
+        hostname: '127.0.0.1',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'readdy.ai',
+      },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+      },
+    ],
     // Image optimization settings
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],

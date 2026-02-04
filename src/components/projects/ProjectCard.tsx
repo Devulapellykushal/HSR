@@ -41,9 +41,9 @@ export default function ProjectCard({ project }: ProjectCardProps) {
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow h-full flex flex-col">
       <div className="relative h-48 sm:h-56 md:h-64 w-full bg-gray-200">
-        {project.image && 
-         (project.image.startsWith('http://') || project.image.startsWith('https://')) &&
-         project.image.length > 10 ? (
+        {project.image &&
+          (project.image.startsWith('http://') || project.image.startsWith('https://')) &&
+          project.image.length > 10 ? (
           <Image
             src={project.image}
             alt={project.title}
@@ -105,7 +105,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
                   key={idx}
                   className="px-2 sm:px-3 py-1 bg-gray-100 rounded-full text-xs sm:text-sm text-gray-700"
                 >
-                  {config}
+                  {config.toUpperCase()}
                 </span>
               ))}
             </div>

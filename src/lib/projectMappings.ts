@@ -11,6 +11,11 @@ export const CONFIGURATION_MAP: Record<string, string> = {
   '4BHK': '4bhk',
   'Villa': 'villa',
   'Duplex': 'duplex',
+  'Apartment': 'apartment',
+  '1 BHK': '1bhk',
+  '2 BHK': '2bhk',
+  '3 BHK': '3bhk',
+  '4 BHK': '4bhk',
 };
 
 // Amenity mapping: display name -> backend key
@@ -29,12 +34,13 @@ export const AMENITY_MAP: Record<string, string> = {
 
 // Reverse mapping: backend key -> display name
 export const CONFIGURATION_DISPLAY_MAP: Record<string, string> = {
-  '1bhk': '1BHK',
-  '2bhk': '2BHK',
-  '3bhk': '3BHK',
-  '4bhk': '4BHK',
+  '1bhk': '1 BHK',
+  '2bhk': '2 BHK',
+  '3bhk': '3 BHK',
+  '4bhk': '4 BHK',
   'villa': 'Villa',
   'duplex': 'Duplex',
+  'apartment': 'Apartment',
 };
 
 export const AMENITY_DISPLAY_MAP: Record<string, string> = {
