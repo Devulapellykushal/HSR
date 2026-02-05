@@ -8,7 +8,6 @@ export default function PrivacyPage() {
                     <SectionHeader
                         title="Privacy Policy"
                         subtitle="How we collect, use, and protect your information"
-                        subtitle="How we collect, use, and protect your information"
                     />
 
                     <div className="prose prose-green max-w-none mt-8 text-gray-600">
