@@ -8,7 +8,6 @@ export default function TermsPage() {
                     <SectionHeader
                         title="Terms of Service"
                         subtitle="Please read these terms carefully before using our services"
-                        subtitle="Please read these terms carefully before using our services"
                     />
 
                     <div className="prose prose-green max-w-none mt-8 text-gray-600">
