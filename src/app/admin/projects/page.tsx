@@ -434,10 +434,6 @@ export default function ProjectsManagement() {
                     <FiMapPin className="w-4 h-4" />
                     <span>{project.location}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm" style={{ color: '#6c757d' }}>
-                    <FiFileText className="w-4 h-4" />
-                    <span>RERA: {project.rera}</span>
-                  </div>
                 </div>
 
                 {/* Action Buttons */}
