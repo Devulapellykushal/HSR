@@ -25,7 +25,7 @@ const fetchProjectsData = async (): Promise<Project[]> => {
     try {
       cachedLoading = true;
       cachedError = null;
-      const response = await projectsService.getProjects();
+      const response = await projectsService.getProjects({ page_size: 100 });
       cachedProjects = response.results;
       return cachedProjects;
     } catch (err: any) {

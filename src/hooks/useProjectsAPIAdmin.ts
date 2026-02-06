@@ -25,7 +25,10 @@ const fetchAdminProjectsData = async (): Promise<Project[]> => {
     try {
       cachedAdminLoading = true;
       cachedAdminError = null;
-      const response = await projectsService.getProjects({ include_upcoming: true });
+      const response = await projectsService.getProjects({
+        include_upcoming: true,
+        page_size: 100
+      });
       cachedAdminProjects = response.results;
       return cachedAdminProjects;
     } catch (err: any) {
