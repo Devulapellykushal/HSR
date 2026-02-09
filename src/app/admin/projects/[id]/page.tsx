@@ -5,8 +5,68 @@ import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { projectsService, Project, GalleryImage, FloorPlan } from '@/services/projectsService';
-import { FiArrowLeft, FiEdit2, FiDownload, FiImage, FiFileText } from 'react-icons/fi';
+import { FiArrowLeft, FiEdit2, FiDownload, FiImage, FiFileText, FiMove } from 'react-icons/fi';
 import { mapConfigurationsToFrontend, mapAmenitiesToFrontend } from '@/lib/projectMappings';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  rectSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
+function SortableGalleryItem({ image, projectTitle }: { image: GalleryImage, projectTitle: string }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({ id: image.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 group touch-none">
+      {image.image_url ? (
+        <Image
+          src={image.image_url}
+          alt={image.caption || projectTitle}
+          fill
+          className="object-cover"
+          sizes="(max-width: 640px) 50vw, 33vw"
+        />
+      ) : (
+        <div className="w-full h-full flex items-center justify-center bg-gray-100">
+          <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        </div>
+      )}
+      <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-move" {...attributes} {...listeners}>
+        <FiMove className="w-8 h-8 text-white drop-shadow-lg" />
+      </div>
+      {image.caption && (
+        <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs p-1.5 sm:p-2 line-clamp-2 pointer-events-none">
+          {image.caption}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function AdminProjectDetailPage() {
   const router = useRouter();
@@ -17,6 +77,64 @@ export default function AdminProjectDetailPage() {
   const [floorPlans, setFloorPlans] = useState<FloorPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Reorder State
+  const [isGalleryReorderMode, setIsGalleryReorderMode] = useState(false);
+  const [isSavingGallery, setIsSavingGallery] = useState(false);
+
+  // Sensors for DnD
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleGalleryDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (active.id !== over?.id) {
+      setGalleryImages((items) => {
+        const oldIndex = items.findIndex((i) => i.id === active.id);
+        const newIndex = items.findIndex((i) => i.id === over?.id);
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
+
+  const handleSaveGalleryOrder = async () => {
+    try {
+      setIsSavingGallery(true);
+      const updates = galleryImages.map((img, index) => ({
+        ...img,
+        display_order: index + 1,
+      }));
+
+      // Update each image order - backend doesn't have bulk gallery reorder yet, so we loop or need a new endpoint
+      // Optimization: Create a bulk endpoint for gallery images. For now, sequential updates.
+      // Actually, standard is to update sequentially if no bulk endpoint.
+      // But let's check if we can just update the project with new gallery image order?
+      // No, usually it's per image.
+
+      // Ideally we should add a bulk reorder for gallery images too. 
+      // For now, let's just update them one by one. It might be slow.
+      // Wait! The user asked for "Gallery Image Reordering: Adding a similar ordering functionality".
+      // Let's implement client-side loop for now, or add a bulk endpoint if needed.
+      // Given constraints, sequential update is safest without modifying backend further unless necessary.
+
+      for (const img of updates) {
+        await projectsService.updateGalleryImage(project!.id, img.id, { display_order: img.display_order });
+      }
+
+      setIsGalleryReorderMode(false);
+      alert('Gallery order saved!');
+    } catch (err) {
+      console.error('Failed to save gallery order', err);
+      alert('Failed to save order.');
+    } finally {
+      setIsSavingGallery(false);
+    }
+  };
 
   useEffect(() => {
     const fetchProjectDetails = async () => {
@@ -30,7 +148,7 @@ export default function AdminProjectDetailPage() {
       try {
         setLoading(true);
         setError(null);
-        
+
         // Fetch project details - gallery images and floor plans are already included
         const projectData = await projectsService.getProjectById(id);
 
@@ -176,43 +294,93 @@ export default function AdminProjectDetailPage() {
                   ? project.description
                   : `Discover ${project.title}, a thoughtfully planned residential community in ${project.location}, designed to offer comfortable living with modern amenities.`}
               </p>
-              
+
               {/* Gallery Images */}
               <div className="mt-4 sm:mt-6">
-                <h3 className="text-base sm:text-lg font-semibold mb-3 flex items-center gap-2" style={{ color: '#343A40' }}>
-                  <FiImage className="w-4 h-4 sm:w-5 sm:h-5" />
-                  Gallery Images
-                </h3>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2" style={{ color: '#343A40' }}>
+                    <FiImage className="w-4 h-4 sm:w-5 sm:h-5" />
+                    Gallery Images
+                  </h3>
+                  {galleryImages.length > 0 && (
+                    !isGalleryReorderMode ? (
+                      <button
+                        onClick={() => setIsGalleryReorderMode(true)}
+                        className="text-xs sm:text-sm text-[#2E936B] hover:text-[#247556] font-medium flex items-center gap-1"
+                      >
+                        <FiMove className="w-3 h-3" />
+                        Reorder
+                      </button>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={handleSaveGalleryOrder}
+                          disabled={isSavingGallery}
+                          className="text-xs sm:text-sm text-white bg-[#2E936B] hover:bg-[#247556] px-2 py-1 rounded font-medium disabled:opacity-50"
+                        >
+                          {isSavingGallery ? 'Saving...' : 'Save'}
+                        </button>
+                        <button
+                          onClick={() => setIsGalleryReorderMode(false)}
+                          disabled={isSavingGallery}
+                          className="text-xs sm:text-sm text-gray-600 hover:text-gray-800 bg-gray-200 px-2 py-1 rounded font-medium"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    )
+                  )}
+                </div>
+
                 {galleryImages.length > 0 ? (
-                  <>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
-                      {galleryImages.map((img) => (
-                        <div key={img.id} className="relative aspect-square rounded-lg overflow-hidden border border-gray-200">
-                          {img.image_url ? (
-                            <Image
-                              src={img.image_url}
-                              alt={img.caption || project.title}
-                              fill
-                              className="object-cover"
-                              sizes="(max-width: 640px) 50vw, 33vw"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                              </svg>
-                            </div>
-                          )}
-                          {img.caption && (
-                            <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs p-1.5 sm:p-2 line-clamp-2">
-                              {img.caption}
-                            </div>
-                          )}
+                  isGalleryReorderMode ? (
+                    <DndContext
+                      sensors={sensors}
+                      collisionDetection={closestCenter}
+                      onDragEnd={handleGalleryDragEnd}
+                    >
+                      <SortableContext
+                        items={galleryImages.map(img => img.id)}
+                        strategy={rectSortingStrategy}
+                      >
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
+                          {galleryImages.map((img) => (
+                            <SortableGalleryItem key={img.id} image={img} projectTitle={project.title} />
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                    <p className="text-xs sm:text-sm text-gray-500 mt-2">Total: {galleryImages.length} images</p>
-                  </>
+                      </SortableContext>
+                    </DndContext>
+                  ) : (
+                    <>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
+                        {galleryImages.map((img) => (
+                          <div key={img.id} className="relative aspect-square rounded-lg overflow-hidden border border-gray-200">
+                            {img.image_url ? (
+                              <Image
+                                src={img.image_url}
+                                alt={img.caption || project.title}
+                                fill
+                                className="object-cover"
+                                sizes="(max-width: 640px) 50vw, 33vw"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                                <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                              </div>
+                            )}
+                            {img.caption && (
+                              <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs p-1.5 sm:p-2 line-clamp-2">
+                                {img.caption}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                      <p className="text-xs sm:text-sm text-gray-500 mt-2">Total: {galleryImages.length} images</p>
+                    </>
+                  )
                 ) : (
                   <p className="text-xs sm:text-sm text-gray-500 italic">No gallery images available</p>
                 )}
@@ -305,13 +473,12 @@ export default function AdminProjectDetailPage() {
                   <dt className="text-gray-600 truncate">Status</dt>
                   <dd className="flex-shrink-0">
                     <span
-                      className={`inline-flex px-2 sm:px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${
-                        project.status === 'ongoing'
-                          ? 'bg-orange-100 text-orange-700'
-                          : project.status === 'completed'
+                      className={`inline-flex px-2 sm:px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${project.status === 'ongoing'
+                        ? 'bg-orange-100 text-orange-700'
+                        : project.status === 'completed'
                           ? 'bg-emerald-100 text-emerald-700'
                           : 'bg-blue-100 text-blue-700'
-                      }`}
+                        }`}
                     >
                       {project.status}
                     </span>
@@ -330,9 +497,8 @@ export default function AdminProjectDetailPage() {
                 <div className="flex justify-between gap-2 sm:gap-3">
                   <dt className="text-gray-600 truncate">Featured</dt>
                   <dd className="flex-shrink-0">
-                    <span className={`px-2 sm:px-2.5 py-1 rounded-full text-xs font-semibold ${
-                      project.is_featured ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-700'
-                    }`}>
+                    <span className={`px-2 sm:px-2.5 py-1 rounded-full text-xs font-semibold ${project.is_featured ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-700'
+                      }`}>
                       {project.is_featured ? 'Yes' : 'No'}
                     </span>
                   </dd>

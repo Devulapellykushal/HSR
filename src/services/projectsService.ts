@@ -17,6 +17,7 @@ export interface Project {
   price?: string;
   is_featured: boolean;
   view_count: number;
+  display_order: number;
   slug: string;
   gallery_images?: GalleryImage[];
   floor_plans?: FloorPlan[];
@@ -249,6 +250,10 @@ export const projectsService = {
       responseType: 'blob',
     });
     return response.data;
+  },
+
+  async reorderProjects(items: { id: number; display_order: number }[]) {
+    await api.post('/projects/reorder/', items);
   },
 
   // Gallery Images

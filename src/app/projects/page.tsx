@@ -7,12 +7,15 @@ import { buildWhatsAppLink } from '@/lib/contactStore';
 import { pageHeroImagesService } from '@/services/pageHeroImagesService';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useEffect, useMemo, useState, Suspense } from 'react';
 
 type FilterType = 'all' | 'ongoing' | 'completed';
 
-export default function ProjectsPage() {
-  const [activeFilter, setActiveFilter] = useState<FilterType>('all');
+function ProjectsContent() {
+  const searchParams = useSearchParams();
+  const initialTab = (searchParams.get('tab') as FilterType) || 'all';
+  const [activeFilter, setActiveFilter] = useState<FilterType>(initialTab);
   const [heroBg, setHeroBg] = useState<string>('');
   const { projects, loading } = useProjectsAPI();
   const contact = useContactSettings();
@@ -103,11 +106,10 @@ export default function ProjectsPage() {
               <button
                 key={filter.key}
                 onClick={() => setActiveFilter(filter.key)}
-                className={`px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-lg font-semibold text-xs sm:text-sm md:text-base transition-colors ${
-                  activeFilter === filter.key
-                    ? 'bg-[#2E936B] text-white'
-                    : 'bg-white border-2 border-[#2E936B] text-[#2E936B] hover:bg-[#E8F5EF]'
-                }`}
+                className={`px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-lg font-semibold text-xs sm:text-sm md:text-base transition-colors ${activeFilter === filter.key
+                  ? 'bg-[#2E936B] text-white'
+                  : 'bg-white border-2 border-[#2E936B] text-[#2E936B] hover:bg-[#E8F5EF]'
+                  }`}
               >
                 {filter.label} ({filterCounts[filter.key]})
               </button>
@@ -187,5 +189,13 @@ export default function ProjectsPage() {
         </div>
       </section>
     </>
+  );
+}
+
+export default function ProjectsPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2E936B]"></div></div>}>
+      <ProjectsContent />
+    </Suspense>
   );
 }

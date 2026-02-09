@@ -59,7 +59,7 @@ export default function ProjectsPreview() {
         </div>
         <div className="text-center">
           <Link
-            href="/projects"
+            href="/projects?tab=ongoing"
             className="inline-block px-6 sm:px-8 py-2.5 sm:py-3 border-2 border-[#2E936B] text-[#2E936B] rounded-lg font-semibold text-sm sm:text-base hover:bg-[#2E936B] hover:text-white transition-colors"
           >
             View All Projects
